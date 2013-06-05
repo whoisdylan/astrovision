@@ -1,7 +1,7 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 10;
+numImages = 40;
 numPoints = 500;
 
 % im1rows = zeros(numPoints,1,numImages);
@@ -37,7 +37,6 @@ display('setting up first image');
 currIm2 = leftImages(:,:,1);
 [x1, y1, v1] = harris(currIm2);
 [points(:,1,1), points(:,2,1), ~] = suppress(x1,y1,v1);
-
 %instantiate im2pts
 display('beginning image processing');
 for i=1:(numImages-1)
@@ -46,3 +45,15 @@ for i=1:(numImages-1)
     currIm2 = leftImages(:,:,i+1);
     [points(:,2,i+1),points(:,1,i+1)] = ncc_match(currIm1,currIm2,points(:,2,i),points(:,1,i));
 end
+%%
+
+%save figs to make video\
+D = dir('C:/Users/render/Desktop/dylan/helicopter images');
+for i=1:numImages
+    fig = imshow(leftImages(:,:,i));
+    hold on;
+    plot(points(:,1,i),points(:,2,i),'r.');
+    hold off;
+    saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' D(i).name]);
+end
+makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13',40);

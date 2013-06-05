@@ -48,7 +48,7 @@ end
 %%
 
 %save figs to make video\
-D = dir('C:/Users/render/Desktop/dylan/helicopter images');
+D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
 for i=1:numImages
     fig = imshow(leftImages(:,:,i));
     hold on;

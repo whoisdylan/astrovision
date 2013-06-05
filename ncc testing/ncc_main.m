@@ -48,12 +48,16 @@ end
 %%
 
 %save figs to make video\
-D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
+% D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
+fig = figure;
 for i=1:numImages
-    fig = imshow(leftImages(:,:,i));
+    set(fig,'PaperPositionMode','auto');
+    imshow(leftImages(:,:,i));
     hold on;
     plot(points(:,1,i),points(:,2,i),'r.');
     hold off;
-    saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' D(i).name]);
+%     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
+    print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i) '.png']);
 end
-makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13',40);
+%%
+makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13',numImages);

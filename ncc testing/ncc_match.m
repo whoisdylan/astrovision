@@ -27,7 +27,5 @@ for i=1:size(im1rows,1)
     %consider adding threshold so if no match exists, im2pt is set to null
 end
 
-
-
 end
 

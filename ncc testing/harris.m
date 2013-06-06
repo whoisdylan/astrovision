@@ -19,8 +19,8 @@ R = (Ix2.*Iy2-IxIy.*IxIy)./(Ix2+Iy2+eps); %det(h)./(trace(h)+epsilon)
 
 %don't want corners close to image border
 
-% descHalfSize = 32;
-descHalfSize = 400;
+descHalfSize = 32;
+% descHalfSize = 400;
 
 R([1:descHalfSize,end-(descHalfSize+1):end],:) = 0;
 R(:,[1:descHalfSize,end-(descHalfSize+1):end]) = 0;

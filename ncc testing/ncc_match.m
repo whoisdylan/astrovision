@@ -4,6 +4,8 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 
 descHalfSize = 16;
 windowHalfSize = 32;
+halfSize = descHalfSize + windowHalfSize;
+
 imHeight = size(im1,1);
 imWidth = size(im1,2);
 numPts = size(im1rows,1);
@@ -39,7 +41,7 @@ for i=1:numPts
     correspondenceRows(i) = currIm2row;
     correspondenceCols(i) = currIm2col;
     %check if new point is outside of the tolerance frame
-    if ((currIm2row < descHalfSize) || (currIm2col < descHalfSize) || (currIm2row > (imHeight - descHalfSize + 1)) || (currIm2col > (imWidth - descHalfSize + 1)))
+    if ((currIm2row < halfSize) || (currIm2col < halfSize) || (currIm2row > (imHeight - halfSize + 1)) || (currIm2col > (imWidth - halfSize + 1)))
         invalidCount = invalidCount + 1;
         
     else
@@ -55,6 +57,7 @@ end
 
 %option 2:
 if (invalidCount ~= 0)
+    display('acquiring new points');
     [x2, y2, v2] = harris(im2);
     [im2cols, im2rows, ~] = suppress(x2, y2, v2);
 end 

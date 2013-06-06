@@ -4,6 +4,17 @@
 numImages = 40;
 numPoints = 500;
 
+%import images from directory direc
+direc = 'C:\Users\render\Desktop\dylan\helicopter images\left*.png';
+D = dir(direc);
+imHeight = 1936;
+imWidth = 1456;
+% leftImages = zeros(imHeight,imWidth,numImages);
+for i=1:numImages;
+    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images\' D(i).name]);
+end
+%%
+
 % im1rows = zeros(numPoints,1,numImages);
 % im1cols = im1rows;
 % im2rows = im1rows;
@@ -16,7 +27,7 @@ points = zeros(numPoints,2,numImages);
 %contains only points with correspondences (ie no newly acquired points)
 %in the form: [imNcols,imNrows,imN+1cols,imN+1rows]
 correspondences = zeros(numPoints,4,numImages-1);
-
+    
 % leftImages = zeros(size(left_0000,1),size(left_0000,2),numImages);
 % leftImages(:,:,1) = rgb2gray(left_0000);
 % leftImages(:,:,2) = rgb2gray(left_0001);

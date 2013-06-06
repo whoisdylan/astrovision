@@ -19,11 +19,11 @@ R = (Ix2.*Iy2-IxIy.*IxIy)./(Ix2+Iy2+eps); %det(h)./(trace(h)+epsilon)
 
 %don't want corners close to image border
 
-descHalfSize = 32;
-% descHalfSize = 400;
+halfSize = 48;
+% halfSize = 400;
 
-R([1:descHalfSize,end-(descHalfSize+1):end],:) = 0;
-R(:,[1:descHalfSize,end-(descHalfSize+1):end]) = 0;
+R([1:halfSize,end-(halfSize+1):end],:) = 0;
+R(:,[1:halfSize,end-(halfSize+1):end]) = 0;
 
 %non-maxima supression within 3x3 windows
 suppressWindow = 16;

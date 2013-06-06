@@ -2,7 +2,7 @@ function [ suppX, suppY, suppV ] = suppress(x,y,v)
 %computes adaptive non-maximal suppression on given set of points
 %x, y, v are column vectors.  v is corner strength
 
-numPoints = 200;
+numPoints = 500;
 dists = zeros(size(y,1),1);
 pts = zeros(size(y,1),1);
 suppY = zeros(numPoints,1);

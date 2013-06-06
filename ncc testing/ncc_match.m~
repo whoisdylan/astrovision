@@ -1,4 +1,4 @@
-function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,im1rows,im1cols)
+function [im2rows,im2cols] = ncc_match(im1,im2,im1rows,im1cols)
 %takes in im1 im2 and im1 feature points, creates descriptors of im1pts and
 %searches windows within im2 to find and return im2pts
 
@@ -9,8 +9,6 @@ imWidth = size(im1,2);
 
 im2rows = zeros(size(im1rows,1),1);
 im2cols = zeros(size(im1cols,1),1);
-correspondenceRows = zeros(size(im1rows,1),1);
-correspondenceCols = zeros(size(im1cols,1),1);
 
 %number of invalid points (ie outside of frame after offset)
 invalidCount = 0;
@@ -35,12 +33,9 @@ for i=1:size(im1rows,1)
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     
-    correspondenceRows(i) = currIm2row;
-    correspondenceCols(i) = currIm2col;
-    %check if new point is outside of the tolerance frame
+    %check if new point is within the tolerance frame
     if ((currIm2row < descHalfSize) || (currIm2col < descHalfSize) || (currIm2row > (imHeight - descHalfSize + 1)) || (currIm2col > (imWidth - descHalfSize + 1)))
         invalidCount = invalidCount + 1;
-        
         
     else
         im2rows(i) = currIm2row;

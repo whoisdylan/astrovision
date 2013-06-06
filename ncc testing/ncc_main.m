@@ -65,8 +65,11 @@ for i=1:(numImages-1)
     [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,points(:,2,i),points(:,1,i));
 end
 %%
+%save dual image figs to show correspondences
 
-%save figs to make video\
+%%
+
+%save figs to make video
 % D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
 fig = figure;
 for i=1:numImages
@@ -76,7 +79,7 @@ for i=1:numImages
     plot(points(:,1,i),points(:,2,i),'r.');
     hold off;
 %     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
-    print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i) '.png']);
+    print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results/' int2str(i) '.png']);
 end
 %%
-makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13',numImages);
+makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results',numImages);

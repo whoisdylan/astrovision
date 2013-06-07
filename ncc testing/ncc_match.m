@@ -97,7 +97,7 @@ if (invalidCount ~= 0)
         xDim = imWidth - halfSize - maxColOffset;
         left = false;
     else
-        xDim = imWidth - halfSize - maxColOffset;
+        xDim = halfSize + maxColOffset;
         left = true;
     end
     [x2, y2, v2] = harrisRegion(im2, xDim, yDim, top, left);

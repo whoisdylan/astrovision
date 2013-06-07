@@ -28,15 +28,15 @@ R(:,[1:halfSize,end-(halfSize+1):end]) = 0;
 
 if (top)
     if (left)
-        R(1:yDim,1:xDim) = 0;
+        R(yDim:end,xDim:end) = 0;
     else
-        R(1:yDim,xDim:end) = 0;
+        R(yDim:end,1:xDim) = 0;
     end
 else
     if (left)
-        R(yDim:end,1:xDim) = 0;
+        R(1:yDim,xDim:end) = 0;
     else
-        R(yDim:end,xDim:end) = 0;
+        R(1:yDim,1:xDim) = 0;
     end
 end
 

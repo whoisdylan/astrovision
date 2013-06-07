@@ -9,7 +9,7 @@ direc = 'C:\Users\render\Desktop\dylan\helicopter images\left*.png';
 D = dir(direc);
 imHeight = 1936;
 imWidth = 1456;
-% leftImages = zeros(imHeight,imWidth,numImages);
+leftImages = uint8(zeros(imHeight,imWidth,numImages));
 for i=1:numImages;
     leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images\' D(i).name]);
 end

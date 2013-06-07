@@ -1,17 +1,21 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 40;
+numImages = 95;
 numPoints = 500;
 
 %import images from directory direc
-direc = 'C:\Users\render\Desktop\dylan\helicopter images\left*.png';
+direc = 'C:\Users\render\Desktop\dylan\helicopter images 2\left*.tiff';
 D = dir(direc);
-imHeight = 1936;
-imWidth = 1456;
+%sizes for helicopter images 1
+% imHeight = 1936;
+% imWidth = 1456;
+%sizes for helicopter images 2
+imHeight = 1827;
+imWidth = 1306;
 leftImages = uint8(zeros(imHeight,imWidth,numImages));
 for i=1:numImages;
-    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images\' D(i).name]);
+    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images 2\' D(i).name]);
 end
 %%
 
@@ -61,5 +65,7 @@ for i=1:numImages
 %     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
     print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results/' int2str(i) '.png']);
 end
+display('finished saving figures');
 %%
 makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results',numImages);
+display('finished making video');

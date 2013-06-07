@@ -115,8 +115,8 @@ if (invalidCount ~= 0)
     else
         [newCols, newRows, ~] = suppressRegion(x2, y2, v2);
     end
-    im2rows((numPoints-invalidCount):end) = newRows(1:invalidCount);
-    im2cols((numPoints-invalidCount):end) = newCols(1:invalidCount);
+    im2rows((numPoints-invalidCount+1):end) = newRows(1:invalidCount);
+    im2cols((numPoints-invalidCount+1):end) = newCols(1:invalidCount);
 %         for i=(numPoints-invalidCount):numPoints
 %             newPoints = newPoints + 1;
 %             im2rows(i) = sy2(newPoints);

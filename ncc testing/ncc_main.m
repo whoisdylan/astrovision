@@ -27,27 +27,6 @@ points = zeros(numPoints,2,numImages);
 %contains only points with correspondences (ie no newly acquired points)
 %in the form: [imNcols,imNrows,imN+1cols,imN+1rows]
 correspondences = zeros(numPoints,4,numImages-1);
-    
-% leftImages = zeros(size(left_0000,1),size(left_0000,2),numImages);
-% leftImages(:,:,1) = rgb2gray(left_0000);
-% leftImages(:,:,2) = rgb2gray(left_0001);
-% leftImages(:,:,3) = rgb2gray(left_0002);
-% leftImages(:,:,4) = rgb2gray(left_0003);
-% leftImages(:,:,5) = rgb2gray(left_0004);
-% leftImages(:,:,6) = rgb2gray(left_0005);
-% leftImages(:,:,7) = rgb2gray(left_0006);
-% leftImages(:,:,8) = rgb2gray(left_0007);
-% leftImages(:,:,9) = rgb2gray(left_0008);
-% leftImages(:,:,10) = rgb2gray(left_0009);
-% leftImages(:,:,1) = rgb2gray(left_0010);
-% leftImages(:,:,1) = rgb2gray(left_0020);
-% leftImages(:,:,1) = rgb2gray(left_0030);
-% leftImages(:,:,1) = rgb2gray(left_0040);
-% leftImages(:,:,1) = rgb2gray(left_0050);
-% leftImages(:,:,1) = rgb2gray(left_0060);
-% leftImages(:,:,1) = rgb2gray(left_0070);
-% leftImages(:,:,1) = rgb2gray(left_0080);
-% leftImages(:,:,1) = rgb2gray(left_0090);
 
 %unroll first image
 display('setting up first image');

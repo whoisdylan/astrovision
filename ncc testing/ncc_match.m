@@ -83,6 +83,7 @@ end
 %         end
 %         i = i + 1;
 
+%%%try to find points intelligently
 if (invalidCount ~= 0)
     display('acquiring new points');
     newPoints = 0;
@@ -101,12 +102,26 @@ if (invalidCount ~= 0)
         left = true;
     end
     [x2, y2, v2] = harrisRegion(im2, xDim, yDim, top, left);
-    [sx2, sy2, ~] = suppressRegion(x2, y2, v2);
-    for i=(numPoints-invalidCount):numPoints
-        newPoints = newPoints + 1;
-        im2rows(i) = sy2(newPoints);
-        im2cols(i) = sx2(newPoints);
+    
+    %%%otherwise look for any new features not in old list
+    if (size(x2,1) < invalidCount)
+        display('no new features, widening search region');
+        [x3, y3, v3] = harris(im2);
+        [sx2, sy2, ~] = suppress(x3, y3, v3);
+%         suppressedPoints = [sy2,sx2];
+        newPointsMask = ~ismember([sy2,sx2],[im2rows,im2cols],'rows');
+        [~,~,newRows] = find(im2rows.*newPointsMask);
+        [~,~,newCols] = find(im2cols.*newPointsMask);
+    else
+        [newCols, newRows, ~] = suppressRegion(x2, y2, v2);
     end
+    im2rows((numPoints-invalidCount):end) = newRows(1:invalidCount);
+    im2cols((numPoints-invalidCount):end) = newCols(1:invalidCount);
+%         for i=(numPoints-invalidCount):numPoints
+%             newPoints = newPoints + 1;
+%             im2rows(i) = sy2(newPoints);
+%             im2cols(i) = sx2(newPoints);
+%         end
 end
 
 %option 2:

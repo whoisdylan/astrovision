@@ -4,7 +4,7 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 
 descHalfSize = 16;
 windowHalfSize = 64;
-halfSize = descHalfSize + 32;
+halfSize = descHalfSize + windowHalfSize;
 
 imHeight = size(im1,1);
 imWidth = size(im1,2);
@@ -36,8 +36,8 @@ for i=1:numPoints
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [~, imax] = max(abs(xcc(:)));
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = ypeak-descHalfSize*3;
-    colOffset = xpeak-descHalfSize*3;
+    rowOffset = ypeak-halfSize;
+    colOffset = xpeak-halfSize;
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     

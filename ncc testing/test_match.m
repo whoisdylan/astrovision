@@ -33,8 +33,8 @@ for i=1:numPoints
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [~, imax] = max(abs(xcc(:)));
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = ypeak-descHalfSize*3;
-    colOffset = xpeak-descHalfSize*3;
+    rowOffset = ypeak-halfSize;
+    colOffset = xpeak-halfSize;
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     

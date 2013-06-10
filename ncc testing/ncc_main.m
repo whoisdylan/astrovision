@@ -72,7 +72,7 @@ for i=1:numImages
 %     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
     print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results/' int2str(i) '.png']);
 end
-display('finished saving figures');
+display('finished saving figures!');
 %%
 makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results',numImages);
 display('finished making video');

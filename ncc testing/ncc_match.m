@@ -3,8 +3,8 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 %searches windows within im2 to find and return im2pts
 
 descHalfSize = 16;
-windowHalfSize = 32;
-halfSize = descHalfSize + windowHalfSize;
+windowHalfSize = 64;
+halfSize = descHalfSize + 32;
 
 imHeight = size(im1,1);
 imWidth = size(im1,2);

@@ -1,7 +1,7 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 95;
+numImages = 10;
 numPoints = 500;
 
 %import images from directory direc
@@ -17,6 +17,7 @@ leftImages = uint8(zeros(imHeight,imWidth,numImages));
 for i=1:numImages;
     leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images 2\' D(i).name]);
 end
+display('finished loading images');
 %%
 
 % im1rows = zeros(numPoints,1,numImages);
@@ -60,7 +61,8 @@ for i=1:numImages
     set(fig,'PaperPositionMode','auto');
     imshow(leftImages(:,:,i));
     hold on;
-    plot(points(:,1,i),points(:,2,i),'r.');
+%     plot(points(:,1,i),points(:,2,i),'r.'); %plot all points
+    plot(correspondences(:,1,i),correspondences(:,2,i),'r.'); %plot correspondences
     hold off;
 %     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
     print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results/' int2str(i) '.png']);

@@ -113,7 +113,7 @@ if (invalidCount ~= 0)
         [~,~,newRows] = find(sy2.*newPointsMask);
         [~,~,newCols] = find(sx2.*newPointsMask);
     else
-        [newCols, newRows, ~] = suppressRegion(x2, y2, v2);
+        [newCols, newRows, ~] = suppressRegion(x2, y2, v2, invalidCount);
     end
     im2rows((numPoints-invalidCount+1):end) = newRows(1:invalidCount);
     im2cols((numPoints-invalidCount+1):end) = newCols(1:invalidCount);

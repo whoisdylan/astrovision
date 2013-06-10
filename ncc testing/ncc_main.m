@@ -1,7 +1,7 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 10;
+numImages = 95;
 numPoints = 500;
 
 %import images from directory direc

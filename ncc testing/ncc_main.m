@@ -75,4 +75,4 @@ end
 display('finished saving figures');
 %%
 makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results',numImages);
-display('finished making video');
+displa('finished making video');

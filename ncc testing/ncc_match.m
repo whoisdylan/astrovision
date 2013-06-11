@@ -2,7 +2,7 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 %takes in im1 im2 and im1 feature points, creates descriptors of im1pts and
 %searches windows within im2 to find and return im2pts
 
-descHalfSize = 16;
+descHalfSize = 4;
 windowHalfSize = 64;
 halfSize = descHalfSize + windowHalfSize;
 
@@ -21,7 +21,7 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
-imScale = 3;
+imScale = 5;
 
 for i=1:numPoints
     
@@ -31,10 +31,10 @@ for i=1:numPoints
     currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
     currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
     %interpolate larger descriptors and windows for subpixel accuracy
-    resizedDesc = imresize(currDesc,imScale);
-    resizedWindow = imresize(currWindow,imScale);
-    currDesc = resizedDesc(1:imScale:end,1:imScale:end);
-    currWindow = resizedWindow(1:imScale:end,1:imScale:end);
+    currDesc = imresize(currDesc,imScale);
+    currWindow = imresize(currWindow,imScale);
+%     currDesc = resizedDesc(1:imScale:end,1:imScale:end);
+%     currWindow = resizedWindow(1:imScale:end,1:imScale:end);
     
 
     %compute NCC
@@ -44,16 +44,16 @@ for i=1:numPoints
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [~, imax] = max(abs(xcc(:)));
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = ypeak-halfSize;
-    colOffset = xpeak-halfSize;
+    rowOffset = ypeak/5.0-halfSize;
+    colOffset = xpeak/5.0-halfSize;
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     
     if (rowOffset > maxRowOffset)
-        maxRowOffset = rowOffset;
+        maxRowOffset = round(rowOffset);
     end
     if (colOffset > maxColOffset)
-        maxColOffset = colOffset;
+        maxColOffset = round(colOffset);
     end
     
     correspondenceRows(i) = currIm2row;
@@ -63,8 +63,8 @@ for i=1:numPoints
         invalidCount = invalidCount + 1;
         
     else
-        im2rows(i-invalidCount) = currIm2row;
-        im2cols(i-invalidCount) = currIm2col;
+        im2rows(i-invalidCount) = round(currIm2row);
+        im2cols(i-invalidCount) = round(currIm2col);
     end
     %consider adding threshold so if no match exists, im2pt is set to null
 end

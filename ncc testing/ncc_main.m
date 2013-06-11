@@ -63,10 +63,10 @@ for i=1:numImages
     hold on;
 %     plot(points(:,1,i),points(:,2,i),'r.'); %plot all points
     %plot correspondences
-    if (i==numImages)
-        plot(correspondences(:,3,i-1),correspondences(:,4,i-1),'r.');
-    else
+    if (i==1)
         plot(correspondences(:,1,i),correspondences(:,2,i),'r.');
+    else
+        plot(correspondences(:,3,i-1),correspondences(:,4,i-1),'r.');
     end
     hold off;
 %     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');

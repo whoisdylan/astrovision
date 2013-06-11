@@ -21,6 +21,8 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
+imScale = 3;
+
 for i=1:numPoints
     
     %create descriptor from im1 and search window from im2
@@ -28,7 +30,13 @@ for i=1:numPoints
     currCol = im1cols(i);
     currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
     currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
+    %interpolate larger descriptors and windows for subpixel accuracy
+    resizedDesc = imresize(currDesc,imScale);
+    resizedWindow = imresize(currWindow,imScale);
+    currDesc = resizedDesc(1:imScale:end,1:imScale:end);
+    currWindow = resizedWindow(1:imScale:end,1:imScale:end);
     
+
     %compute NCC
     xcc = normxcorr2(currDesc,currWindow);
 %     [max_xcc, imax] = max(abs(xcc(:)));

@@ -52,7 +52,7 @@ for i=1:(numImages-1)
     resizedIm2 = imresize(currIm2,imScale);
     correspondences(:,2,i) = points(:,2,i);
     correspondences(:,1,i) = points(:,1,i);
-    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(resizedIm1,resizedIm2,points(:,2,i),points(:,1,i));
+    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,resizedIm1,resizedIm2,points(:,2,i),points(:,1,i));
 end
 display('finished processing images');
 %%

@@ -1,9 +1,10 @@
-function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,im1rows,im1cols)
+function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,resizedIm1,resizedIm2,im1rows,im1cols)
 %takes in im1 im2 and im1 feature points, creates descriptors of im1pts and
 %searches windows within im2 to find and return im2pts
 
-descHalfSize = 4;
-windowHalfSize = 64;
+imScale = 3;
+descHalfSize = 16*imScale;
+windowHalfSize = 64*imScale;
 halfSize = descHalfSize + windowHalfSize;
 
 imHeight = size(im1,1);
@@ -21,8 +22,6 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
-imScale = 3;
-
 for i=1:numPoints
     
     %create descriptor from im1 and search window from im2
@@ -30,11 +29,15 @@ for i=1:numPoints
     currCol = im1cols(i);
 %     currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
 %     currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
-    currDesc = im1((currRow*imScale-descHalfSize*imScale):(currRow*imScale+descHalfSize*imScale-1),(currCol*imScale-descHalfSize*imScale):(currCol*imScale+descHalfSize*imScale-1));
-    currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));    
+    currDesc = resizedIm1((currRow*imScale-descHalfSize):(currRow*imScale+descHalfSize-1),(currCol*imScale-descHalfSize):(currCol*imScale+descHalfSize-1));
+    currWindow = resizedIm2((currRow*imScale-windowHalfSize):(currRow*imScale+windowHalfSize-1),(currCol*imScale-windowHalfSize):(currCol*imScale+windowHalfSize-1));    
 
     %compute NCC
-    xcc = normxcorr2(currDesc,currWindow);
+    try
+        xcc = normxcorr2(currDesc,currWindow);
+    catch
+        display('ncc error!')
+    end
 %     [max_xcc, imax] = max(abs(xcc(:)));
 
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2

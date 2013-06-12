@@ -21,21 +21,15 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
-imScale = 5;
-
 for i=1:numPoints
     
     %create descriptor from im1 and search window from im2
     currRow = im1rows(i);
     currCol = im1cols(i);
-    currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
-    currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
-    %interpolate larger descriptors and windows for subpixel accuracy
-    currDesc = imresize(currDesc,imScale);
-    currWindow = imresize(currWindow,imScale);
-%     currDesc = resizedDesc(1:imScale:end,1:imScale:end);
-%     currWindow = resizedWindow(1:imScale:end,1:imScale:end);
-    
+%     currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
+%     currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
+    currDesc = im1((currRow*imScale-descHalfSize*imScale):(currRow*imScale+descHalfSize*imScale-1),(currCol*imScale-descHalfSize*imScale):(currCol*imScale+descHalfSize*imScale-1));
+    currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));    
 
     %compute NCC
     xcc = normxcorr2(currDesc,currWindow);
@@ -44,8 +38,8 @@ for i=1:numPoints
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [~, imax] = max(abs(xcc(:)));
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = ypeak/5.0-halfSize;
-    colOffset = xpeak/5.0-halfSize;
+    rowOffset = ypeak/imScale-halfSize;
+    colOffset = xpeak/imScale-halfSize;
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     

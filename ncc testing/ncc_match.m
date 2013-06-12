@@ -1,12 +1,10 @@
-function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,resizedIm1,resizedIm2,im1rows,im1cols)
+function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,im1rows,im1cols)
 %takes in im1 im2 and im1 feature points, creates descriptors of im1pts and
 %searches windows within im2 to find and return im2pts
 
-imScale = 3;
-descHalfSize = 16*imScale;
-windowHalfSize = 64*imScale;
-halfSize = (descHalfSize + windowHalfSize)/imScale;
-resizedHalfSize = descHalfSize + windowHalfSize;
+descHalfSize = 16;
+windowHalfSize = 64;
+halfSize = (descHalfSize + windowHalfSize);
 
 imHeight = size(im1,1);
 imWidth = size(im1,2);
@@ -28,10 +26,8 @@ for i=1:numPoints
     %create descriptor from im1 and search window from im2
     currRow = im1rows(i);
     currCol = im1cols(i);
-%     currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
-%     currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
-    currDesc = resizedIm1((currRow*imScale-descHalfSize):(currRow*imScale+descHalfSize-1),(currCol*imScale-descHalfSize):(currCol*imScale+descHalfSize-1));
-    currWindow = resizedIm2((currRow*imScale-windowHalfSize):(currRow*imScale+windowHalfSize-1),(currCol*imScale-windowHalfSize):(currCol*imScale+windowHalfSize-1));    
+    currDesc = im1((currRow-descHalfSize):(currRow+descHalfSize-1),(currCol-descHalfSize):(currCol+descHalfSize-1));
+    currWindow = im2((currRow-windowHalfSize):(currRow+windowHalfSize-1),(currCol-windowHalfSize):(currCol+windowHalfSize-1));
 
     %compute NCC
     xcc = normxcorr2(currDesc,currWindow);
@@ -40,16 +36,16 @@ for i=1:numPoints
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [~, imax] = max(abs(xcc(:)));
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = (ypeak-resizedHalfSize)/imScale;
-    colOffset = (xpeak-resizedHalfSize)/imScale;
+    rowOffset = (ypeak-halfSize);
+    colOffset = (xpeak-halfSize);
     currIm2row = currRow + rowOffset;
     currIm2col = currCol + colOffset;
     
     if (rowOffset > maxRowOffset)
-        maxRowOffset = round(rowOffset);
+        maxRowOffset = rowOffset;
     end
     if (colOffset > maxColOffset)
-        maxColOffset = round(colOffset);
+        maxColOffset = colOffset;
     end
     
     correspondenceRows(i) = currIm2row;
@@ -59,8 +55,8 @@ for i=1:numPoints
         invalidCount = invalidCount + 1;
         
     else
-        im2rows(i-invalidCount) = round(currIm2row);
-        im2cols(i-invalidCount) = round(currIm2col);
+        im2rows(i-invalidCount) = currIm2row;
+        im2cols(i-invalidCount) = currIm2col;
     end
     %consider adding threshold so if no match exists, im2pt is set to null
 end

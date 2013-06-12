@@ -33,13 +33,9 @@ points = zeros(numPoints,2,numImages);
 %in the form: [imNcols,imNrows,imN+1cols,imN+1rows]
 correspondences = zeros(numPoints,4,numImages-1);
 
-%resize scale factor
-imScale = 3;
-
 %unroll first image
 display('setting up first image');
 currIm2 = leftImages(:,:,1);
-resizedIm2 = imresize(currIm2,imScale);
 [x1, y1, v1] = harris(currIm2);
 [points(:,1,1), points(:,2,1), ~] = suppress(x1,y1,v1);
 %instantiate im2pts
@@ -47,12 +43,10 @@ display('beginning image processing');
 for i=1:(numImages-1)
     display(['processing images ' num2str(i) ' and ' num2str(i+1)]);
     currIm1 = currIm2;
-    resizedIm1 = resizedIm2;
     currIm2 = leftImages(:,:,i+1);
-    resizedIm2 = imresize(currIm2,imScale);
     correspondences(:,2,i) = points(:,2,i);
     correspondences(:,1,i) = points(:,1,i);
-    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,resizedIm1,resizedIm2,points(:,2,i),points(:,1,i));
+    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,points(:,2,i),points(:,1,i));
 end
 display('finished processing images');
 %%

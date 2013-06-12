@@ -21,6 +21,8 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
+imScale = 5;
+
 for i=1:numPoints
     
     %create descriptor from im1 and search window from im2

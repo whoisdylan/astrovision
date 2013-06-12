@@ -34,11 +34,7 @@ for i=1:numPoints
     currWindow = resizedIm2((currRow*imScale-windowHalfSize):(currRow*imScale+windowHalfSize-1),(currCol*imScale-windowHalfSize):(currCol*imScale+windowHalfSize-1));    
 
     %compute NCC
-    try
-        xcc = normxcorr2(currDesc,currWindow);
-    catch
-        display('ncc error!')
-    end
+    xcc = normxcorr2(currDesc,currWindow);
 %     [max_xcc, imax] = max(abs(xcc(:)));
 
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2

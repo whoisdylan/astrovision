@@ -5,7 +5,7 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 imScale = 3;
 descHalfSize = 16*imScale;
 windowHalfSize = 64*imScale;
-halfSize = (descHalfSize + windowHalfSize)/imSclae;
+halfSize = (descHalfSize + windowHalfSize)/imScale;
 resizedHalfSize = descHalfSize + windowHalfSize;
 
 imHeight = size(im1,1);

@@ -21,7 +21,7 @@ invalidCount = 0;
 maxRowOffset = 0;
 maxColOffset = 0;
 
-imScale = 5;
+imScale = 3;
 
 for i=1:numPoints
     

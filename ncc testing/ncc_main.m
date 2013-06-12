@@ -34,7 +34,7 @@ points = zeros(numPoints,2,numImages);
 correspondences = zeros(numPoints,4,numImages-1);
 
 %resize scale factor
-imScale = 5;
+imScale = 3;
 
 %unroll first image
 display('setting up first image');

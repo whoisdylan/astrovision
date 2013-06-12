@@ -33,6 +33,9 @@ nonmax = inline('max(x)');
 Rmax = colfilt(R,[suppressWindow suppressWindow],'sliding',nonmax); %find neighborhood max
 Rnm = R.*(R==Rmax); %supress non-max
 
+%suppress points with low v
+% Rnm = Rnm.*(R>=9e-5);
+
 %extract all interest points
 %v is corner strength value
 [y,x,v] = find(Rnm);

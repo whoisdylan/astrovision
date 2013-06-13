@@ -3,7 +3,7 @@ function [ suppX, suppY, suppV ] = suppress_old(x,y,v)
 %x, y, v are column vectors.  v is corner strength
 %this function produces duplicate points and isn't exactly correct
 
-numPoints = 500;
+numPoints = 300;
 dists = zeros(size(y,1),1);
 pts = zeros(size(y,1),1);
 suppY = zeros(numPoints,1);

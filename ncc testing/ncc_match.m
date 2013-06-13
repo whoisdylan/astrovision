@@ -15,6 +15,8 @@ im2cols = zeros(size(im1cols,1),1);
 correspondenceRows = zeros(size(im1rows,1),1);
 correspondenceCols = zeros(size(im1cols,1),1);
 
+threshCorr = .9;
+
 %number of invalid points (ie outside of frame after offset)
 invalidCount = 0;
 
@@ -34,7 +36,11 @@ for i=1:numPoints
 %     [max_xcc, imax] = max(abs(xcc(:)));
 
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
-    [~, imax] = max(abs(xcc(:)));
+    [peakCorr, imax] = max(abs(xcc(:)));
+    %if the correlation isn't strong enough, discard that feature point
+    if (peakCorr < threshCorr)
+        
+    else
     [ypeak, xpeak] = ind2sub(size(xcc),imax);
     rowOffset = (ypeak-halfSize);
     colOffset = (xpeak-halfSize);
@@ -57,6 +63,7 @@ for i=1:numPoints
     else
         im2rows(i-invalidCount) = currIm2row;
         im2cols(i-invalidCount) = currIm2col;
+    end
     end
     %consider adding threshold so if no match exists, im2pt is set to null
 end

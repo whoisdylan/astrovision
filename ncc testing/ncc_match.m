@@ -37,35 +37,38 @@ for i=1:numPoints
 
     %calculate row (y) and col (x) offset relative to im1pt for feature point in im2
     [peakCorr, imax] = max(abs(xcc(:)));
+    xcc(imax) = NaN;
+    secondPeak = max(abs(xcc(:)));
     %if the correlation isn't strong enough, discard that feature point
-    if (peakCorr < threshCorr)
-        
-    else
-    [ypeak, xpeak] = ind2sub(size(xcc),imax);
-    rowOffset = (ypeak-halfSize);
-    colOffset = (xpeak-halfSize);
-    currIm2row = currRow + rowOffset;
-    currIm2col = currCol + colOffset;
-    
-    if (rowOffset > maxRowOffset)
-        maxRowOffset = rowOffset;
-    end
-    if (colOffset > maxColOffset)
-        maxColOffset = colOffset;
-    end
-    
-    correspondenceRows(i) = currIm2row;
-    correspondenceCols(i) = currIm2col;
-    %check if new point is outside of the tolerance frame
-    if ((currIm2row < halfSize) || (currIm2col < halfSize) || (currIm2row > (imHeight - halfSize + 1)) || (currIm2col > (imWidth - halfSize + 1)))
+    %or if russian granny check fails, discard the point as well
+    if ((peakCorr < threshCorr) || (secondPeak/peakCorr > .993))
         invalidCount = invalidCount + 1;
-        
+        correspondenceRows(i) = NaN;
+        correspondenceCols(i) = NaN;
     else
-        im2rows(i-invalidCount) = currIm2row;
-        im2cols(i-invalidCount) = currIm2col;
+        [ypeak, xpeak] = ind2sub(size(xcc),imax);
+        rowOffset = (ypeak-halfSize);
+        colOffset = (xpeak-halfSize);
+        currIm2row = currRow + rowOffset;
+        currIm2col = currCol + colOffset;
+        
+        if (rowOffset > maxRowOffset)
+            maxRowOffset = rowOffset;
+        end
+        if (colOffset > maxColOffset)
+            maxColOffset = colOffset;
+        end
+        
+        correspondenceRows(i) = currIm2row;
+        correspondenceCols(i) = currIm2col;
+        %check if new point is outside of the tolerance frame
+        if ((currIm2row < halfSize) || (currIm2col < halfSize) || (currIm2row > (imHeight - halfSize + 1)) || (currIm2col > (imWidth - halfSize + 1)))
+            invalidCount = invalidCount + 1;
+        else
+            im2rows(i-invalidCount) = currIm2row;
+            im2cols(i-invalidCount) = currIm2col;
+        end
     end
-    end
-    %consider adding threshold so if no match exists, im2pt is set to null
 end
 
 %detect new features if necessary, two options...

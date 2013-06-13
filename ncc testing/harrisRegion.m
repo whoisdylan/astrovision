@@ -43,7 +43,7 @@ else
 end
 
 %non-maxima supression within 3x3 windows
-suppressWindow = 16;
+suppressWindow = 9;
 nonmax = inline('max(x)');
 Rmax = colfilt(R,[suppressWindow suppressWindow],'sliding',nonmax); %find neighborhood max
 Rnm = R.*(R==Rmax); %supress non-max

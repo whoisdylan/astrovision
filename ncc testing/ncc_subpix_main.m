@@ -2,7 +2,7 @@
 %correspondence points in im2
 
 numImages = 40;
-numPoints = 500;
+numPoints = 300;
 
 %import images from directory direc
 direc = 'C:\Users\render\Desktop\dylan\helicopter images 2\left*.tiff';

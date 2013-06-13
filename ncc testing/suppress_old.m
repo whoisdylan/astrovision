@@ -1,4 +1,4 @@
-function [ suppX, suppY, suppV ] = suppress(x,y,v)
+function [ suppX, suppY, suppV ] = suppress_old(x,y,v)
 %computes adaptive non-maximal suppression on given set of points
 %x, y, v are column vectors.  v is corner strength
 %this function produces duplicate points and isn't exactly correct

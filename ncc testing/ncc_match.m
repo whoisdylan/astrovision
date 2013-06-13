@@ -74,7 +74,7 @@ end
 %     display('acquiring new points');
 %     [x2, y2, v2] = harris(im2);
 %     [sx2, sy2, sv2] = suppress(x2, y2, v2);
-%     while (newPoints ~= invalidCount)\
+%     while (newPoints ~= invalidCount)
 %         currX = sx2(i);
 %         currY = sy2(i);
 %         if (maxRowOffset < 0)

@@ -16,6 +16,7 @@ correspondenceRows = zeros(size(im1rows,1),1);
 correspondenceCols = zeros(size(im1cols,1),1);
 
 threshCorr = .9;
+russianGranny = .0001;
 
 %number of invalid points (ie outside of frame after offset)
 invalidCount = 0;
@@ -41,7 +42,7 @@ for i=1:numPoints
     secondPeak = max(abs(xcc(:)));
     %if the correlation isn't strong enough, discard that feature point
     %or if russian granny check fails, discard the point as well
-    if ((peakCorr < threshCorr) || (secondPeak/peakCorr > .993))
+    if ((peakCorr < threshCorr) || (peakCorr-secondPeak < russianGranny))
         invalidCount = invalidCount + 1;
         correspondenceRows(i) = NaN;
         correspondenceCols(i) = NaN;

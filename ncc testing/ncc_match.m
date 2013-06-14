@@ -16,7 +16,8 @@ correspondenceRows = zeros(size(im1rows,1),1);
 correspondenceCols = zeros(size(im1cols,1),1);
 
 threshCorr = .9;
-russianGranny = .0001;
+% russianGranny = .0001;
+russianGranny = -inf;
 
 %number of invalid points (ie outside of frame after offset)
 invalidCount = 0;
@@ -89,7 +90,7 @@ end
 %         currX = sx2(i);
 %         currY = sy2(i);
 %         if (maxRowOffset < 0)
-%             if (currX < xDim && currX > (xDim-maxRowOffset))f
+%             if (currX < xDim && currX > (xDim-maxRowOffset))
 %             end
 %         end
 %         i = i + 1;

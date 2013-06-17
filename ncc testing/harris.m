@@ -27,7 +27,7 @@ halfSize = descHalfSize+windowHalfSize;
 R([1:halfSize,end-(halfSize+1):end],:) = 0;
 R(:,[1:halfSize,end-(halfSize+1):end]) = 0;
 
-%non-maxima supression within 3x3 windows
+%non-maxima supression within 3x3 windows (use 9x9)
 suppressWindow = 9;
 nonmax = inline('max(x)');
 Rmax = colfilt(R,[suppressWindow suppressWindow],'sliding',nonmax); %find neighborhood max

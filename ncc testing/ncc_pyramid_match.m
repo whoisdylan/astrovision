@@ -4,7 +4,11 @@ function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1
 
 descHalfSize = 16;
 windowHalfSize = 64;
-halfSize = (descHalfSize + windowHalfSize);
+halfSize = descHalfSize + windowHalfSize;
+descHalfSize2 = 4;
+windowHalfSize2 = 5;
+halfSize2 = descHalfSize2 + windowHalfSize2;
+imScale = 4;
 
 imHeight = size(im1,1);
 imWidth = size(im1,2);
@@ -51,6 +55,19 @@ for i=1:numPoints
         [ypeak, xpeak] = ind2sub(size(xcc),imax);
         rowOffset = (ypeak-halfSize);
         colOffset = (xpeak-halfSize);
+        %now use initial match to create a small interp'd image at match
+        %location and match again
+        newRow = currRow + rowOffset;
+        newCol = currCol + colOffset;
+        newDesc = im1((currRow-descHalfSize2):(currRow+descHalfSize2-1),(currCol-descHalfSize2:currCol+descHalfSize2-1));
+        newWindow = im2((newRow-windowHalfSize2):(newRow+windowHalfSize2-1),(newCol-windowHalfSize2):(newCol+windowHalfSize2-1));
+        descResize = imresize(newDesc,imScale);
+        windowResize = imresize(newWindow,imScale);
+        xcc2 = normxcorr2(descResize,windowResize);
+        [~, imax] = max(abs(xcc2(:)));
+        [ypeak, xpeak] = ind2sub(size(xcc2),imax);
+        rowOffset = ypeak/imScale - descHalfSize2*2 + ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
+        colOffset = xpeak/imScale - descHalfSize2*2 + ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
         currIm2row = currRow + rowOffset;
         currIm2col = currCol + colOffset;
         

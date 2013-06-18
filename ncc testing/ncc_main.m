@@ -46,7 +46,7 @@ for i=1:(numImages-1)
     currIm2 = leftImages(:,:,i+1);
     correspondences(:,2,i) = points(:,2,i);
     correspondences(:,1,i) = points(:,1,i);
-    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,points(:,2,i),points(:,1,i));
+    [points(:,2,i+1),points(:,1,i+1),correspondences(:,4,i),correspondences(:,3,i)] = ncc_pyramid_match(currIm1,currIm2,points(:,2,i),points(:,1,i));
 end
 display('finished processing images');
 %%

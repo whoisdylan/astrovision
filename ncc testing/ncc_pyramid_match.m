@@ -84,8 +84,8 @@ for i=1:numPoints
         if ((currIm2row < halfSize) || (currIm2col < halfSize) || (currIm2row > (imHeight - halfSize + 1)) || (currIm2col > (imWidth - halfSize + 1)))
             invalidCount = invalidCount + 1;
         else
-            im2rows(i-invalidCount) = currIm2row;
-            im2cols(i-invalidCount) = currIm2col;
+            im2rows(i-invalidCount) = round(currIm2row);
+            im2cols(i-invalidCount) = round(currIm2col);
         end
     end
 end
@@ -116,17 +116,17 @@ end
 if (invalidCount ~= 0)
     display('acquiring new points');
     if (maxRowOffset < 0)
-        yDim = imHeight - halfSize - maxRowOffset;
+        yDim = imHeight - halfSize - round(maxRowOffset);
         top = false;
     else
-        yDim = halfSize + maxRowOffset;
+        yDim = halfSize + round(maxRowOffset);
         top = true;
     end
     if (maxColOffset < 0)
-        xDim = imWidth - halfSize - maxColOffset;
+        xDim = imWidth - halfSize - round(maxColOffset);
         left = false;
     else
-        xDim = halfSize + maxColOffset;
+        xDim = halfSize + round(maxColOffset);
         left = true;
     end
 %     display([top,left]);

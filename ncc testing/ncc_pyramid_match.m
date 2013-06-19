@@ -115,8 +115,6 @@ end
 %%%try to find points intelligently
 if (invalidCount ~= 0)
     display('acquiring new points');
-    yDim = 914;
-    xDim = 653;
     if (maxRowOffset < 0)
 %         yDim = imHeight - halfSize - round(maxRowOffset);
         top = false;
@@ -132,13 +130,14 @@ if (invalidCount ~= 0)
         left = true;
     end
 %     display([top,left]);
-    [x2, y2, v2] = harrisRegion(im2, xDim, yDim, top, left);
+    [x2, y2, v2] = harrisBlocks(im2, im2cols, im2rows, top, left);
     
     %%%otherwise look for any new features not in old list
     if (size(x2,1) < invalidCount)
         display('no new features, widening search region');
         [x3, y3, v3] = harris(im2);
         [sx2, sy2, ~] = suppress(x3, y3, v3);
+        
 %         suppressedPoints = [sy2,sx2];
         newPointsMask = ~ismember([sy2,sx2],[im2rows,im2cols],'rows');
         [~,~,newRows] = find(sy2.*newPointsMask);

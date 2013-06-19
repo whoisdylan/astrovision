@@ -5,17 +5,19 @@ numImages = 40;
 numPoints = 300;
 
 %import images from directory direc
-direc = 'C:\Users\render\Desktop\dylan\helicopter images 2\left*.tiff';
-D = dir(direc);
+direc = 'C:\Users\render\Downloads\enjoy\';
+DL = dir([direc 'L*']);
+DR = dir([direc 'R*']);
 %sizes for helicopter images 1
 % imHeight = 1936;
 % imWidth = 1456;
 %sizes for helicopter images 2
-imHeight = 1827;
-imWidth = 1306;
-leftImages = uint8(zeros(imHeight,imWidth,numImages));
-for i=1:numImages;
-    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images 2\' D(i).name]);
+% imHeight = 1827;
+% imWidth = 1306;
+% lefts = uint8(zeros(imHeight,imWidth,numImages));
+for i=1:numel(DL);
+    lefts(:,:,i) = rgb2gray(imread([direc DL(i).name]));
+    rights(:,:,i) = rgb2gray(imread([direc DR(i).name]));
 end
 display('finished loading images');
 %%

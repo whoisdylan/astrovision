@@ -115,18 +115,20 @@ end
 %%%try to find points intelligently
 if (invalidCount ~= 0)
     display('acquiring new points');
+    yDim = 914;
+    xDim = 653;
     if (maxRowOffset < 0)
-        yDim = imHeight - halfSize - round(maxRowOffset);
+%         yDim = imHeight - halfSize - round(maxRowOffset);
         top = false;
     else
-        yDim = halfSize + round(maxRowOffset);
+%         yDim = halfSize + round(maxRowOffset);
         top = true;
     end
     if (maxColOffset < 0)
-        xDim = imWidth - halfSize - round(maxColOffset);
+%         xDim = imWidth - halfSize - round(maxColOffset);
         left = false;
     else
-        xDim = halfSize + round(maxColOffset);
+%         xDim = halfSize + round(maxColOffset);
         left = true;
     end
 %     display([top,left]);
@@ -142,7 +144,13 @@ if (invalidCount ~= 0)
         [~,~,newRows] = find(sy2.*newPointsMask);
         [~,~,newCols] = find(sx2.*newPointsMask);
     else
-        [newCols, newRows, ~] = suppressRegion(x2, y2, v2, invalidCount);
+        [sx2, sy2, ~] = suppress(x2, y2, v2);
+        newPointsMask = ~ismember([sy2,sx2],[im2rows,im2cols],'rows');
+        newPointsMask = newPointsMask & ~ismember([sy2,sx2],[im2rows-1,im2cols],'rows');
+        newPointsMask = newPointsMask & ~ismember([sy2,sx2],[im2rows-1,im2cols-1],'rows');
+        newPointsMask = newPointsMask & ~ismember([sy2,sx2],[im2rows,im2cols-1],'rows');
+        [~,~,newRows] = find(sy2.*newPointsMask);
+        [~,~,newCols] = find(sx2.*newPointsMask);
     end
     im2rows((numPoints-invalidCount+1):end) = newRows(1:invalidCount);
     im2cols((numPoints-invalidCount+1):end) = newCols(1:invalidCount);

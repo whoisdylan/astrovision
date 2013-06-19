@@ -50,7 +50,7 @@ for i=1:(numImages-1)
 end
 display('finished processing images');
 %%
-%save dual image figs to show correspondences
+%save dual-image figs to show correspondences
 fig = figure;
 for i=1:numImages-1
     set(fig,'PaperPositionMode','auto');
@@ -65,7 +65,7 @@ end
 display('finished saving dual figures');
 %%
 
-%save figs to make video
+%save single-image figs to make video
 % D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
 fig = figure;
 for i=1:numImages
@@ -85,5 +85,10 @@ for i=1:numImages
 end
 display('finished saving figures');
 %%
+%make single-image video
 makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results',numImages);
+display('finished making video');
+%%
+%make dual-image video
+makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results_dual',numImages-1);
 display('finished making video');

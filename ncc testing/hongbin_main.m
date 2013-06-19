@@ -1,11 +1,11 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 40;
+numImages = 2;
 numPoints = 300;
 
 %import images from directory direc
-direc = 'C:\Users\render\Downloads\enjoy\';
+direc = 'C:\Users\render\Desktop\renewpics\';
 DL = dir([direc 'L*']);
 DR = dir([direc 'R*']);
 %sizes for helicopter images 1
@@ -26,7 +26,7 @@ display('finished loading images');
 % im1cols = im1rows;
 % im2rows = im1rows;
 % im2cols = im1rows;
-numImages=8;
+numImages=2;
 numPoints=300;
 %contains all points for all images, including newly acquired ones if
 %points went out of frame

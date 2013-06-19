@@ -130,7 +130,7 @@ if (invalidCount ~= 0)
         left = true;
     end
 %     display([top,left]);
-    [x2, y2, v2] = harrisBlocks(im2, im2cols, im2rows, top, left);
+    [x2, y2, v2] = harrisBlocks(im2, im2cols(1:end-invalidCount), im2rows(1:end-invalidCount), top, left);
     
     %%%otherwise look for any new features not in old list
     if (size(x2,1) < invalidCount)

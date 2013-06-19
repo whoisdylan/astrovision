@@ -51,7 +51,18 @@ end
 display('finished processing images');
 %%
 %save dual image figs to show correspondences
-
+fig = figure;
+for i=1:numImages-1
+    set(fig,'PaperPositionMode','auto');
+    catImage = [leftImages(:,:,i) leftImages(:,:,i+1)];
+    imshow(catImage)
+    hold on;
+    plot(correspondences(:,1,i),correspondences(:,2,i),'r.');
+    plot(correspondences(:,3,i)+imWidth,correspondences(:,4,i),'r.');
+    hold off;
+    print(fig,'-dpng','-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results_dual/' int2str(i) '.png']);
+end
+display('finished saving dual figures');
 %%
 
 %save figs to make video

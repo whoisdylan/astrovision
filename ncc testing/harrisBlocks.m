@@ -28,6 +28,7 @@ R = (Ix2.*Iy2-IxIy.*IxIy)./(Ix2+Iy2+eps); %det(h)./(trace(h)+epsilon)
 descHalfSize = 16;
 windowHalfSize = 64;
 halfSize = descHalfSize+windowHalfSize;
+blockWindow = 10;
 
 R([1:halfSize,end-(halfSize+1):end],:) = 0;
 R(:,[1:halfSize,end-(halfSize+1):end]) = 0;
@@ -51,7 +52,7 @@ end
 for i=1:size(cols,1)
     row = rows(i);
     col = cols(i);
-    R(row-3:row+3,col-3:col+3) = 0;
+    R(row-blockWindow:row+blockWindow,col-blockWindow:col+blockWindow) = 0;
 end
         
 %non-maxima supression within 3x3 windows

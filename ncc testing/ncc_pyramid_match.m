@@ -130,8 +130,8 @@ if (invalidCount ~= 0)
         left = true;
     end
 %     display([top,left]);
-    [x2, y2, v2] = harrisBlocks(im2, im2cols(1:end-invalidCount), im2rows(1:end-invalidCount), top, left);
-    
+%     [x2, y2, v2] = harrisBlocks(im2, im2cols(1:end-invalidCount), im2rows(1:end-invalidCount), top, left);
+    [x2, y2, v2] = harris(im2);
     %%%otherwise look for any new features not in old list
     if (size(x2,1) < invalidCount)
         display('no new features, widening search region');
@@ -147,8 +147,10 @@ if (invalidCount ~= 0)
         newRows = sy2;
         newCols = sx2;
     end
-    im2rows((numPoints-invalidCount+1):end) = newRows(1:invalidCount);
-    im2cols((numPoints-invalidCount+1):end) = newCols(1:invalidCount);
+%     im2rows((numPoints-invalidCount+1):end) = newRows(1:invalidCount);
+%     im2cols((numPoints-invalidCount+1):end) = newCols(1:invalidCount);
+    im2rows = newRows;
+    im2cols = newCols;
 end
 
 %option 2:

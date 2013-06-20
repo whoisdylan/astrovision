@@ -1,14 +1,14 @@
 CC = g++
 CFLAGS = -Wall -Wextra -Werror -O2
-OBJS = main.o
+OBJS = astrovision.o
 
 all: astrovision
 
-astrovision: $(OBJS)
-	$(CC) $(CFLAGS) -o astrovision $(OBJS)
+astrovision: objects/$(OBJS)
+	$(CC) $(CFLAGS) -o astrovision objects/$(OBJS)
 
-main.o: main.cpp
-	$(CC) $(CFLAGS) -c main.cpp
+objects/astrovision.o: astrovision.cpp
+	$(CC) $(CFLAGS) -c astrovision.cpp -o objects/astrovision.o
 
 clean:
-	rm -f *~ *.o astrovision
+	rm -f *~ objects/*.o astrovision

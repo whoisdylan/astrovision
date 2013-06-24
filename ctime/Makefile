@@ -1,5 +1,6 @@
 CC = g++
-CFLAGS = -Wall -Wextra -Werror -O2
+# CFLAGS = -Wall -Wextra -Werror -O2
+CFLAGS = -Wall -Wextra -O2
 OBJS = astrovision.o
 
 all: astrovision

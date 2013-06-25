@@ -7,7 +7,7 @@ using namespace cv;		using namespace std;
 
 const int numImages = 40;
 const int numPoints = 300;
-const string imDir = "~/Dropbox/helicopter_rect_crop_images/";
+const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/";
 
 struct imageData {
 	// Mat points(numPoints, 2, CV_32FC1);
@@ -33,9 +33,12 @@ int main() {
 
 
 	printf("setting up first image\n");
-	char imageLocation[] = "%s %s %04d %s";
-	sprintf(imageLocation,imDir.c_str(),"left_rect_crop_",0,".tiff");
-	currIm1 = imread(imageLocation,0);
+	char imageLocation[100];
+	sprintf(imageLocation, "%s%s%04d%s", imDir,"left_rect_crop_",0,".tiff");
+	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
+	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
+	// imshow("fig",currIm1);
+	// waitKey(0);
 	Mat corners = harris(currIm1);
 	// currIm1Data.correspondencesNext = suppress(harris points); //fix this
 	// currIm1Data.correspondencesPrev = NULL;

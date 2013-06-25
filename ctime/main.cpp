@@ -7,7 +7,9 @@ using namespace cv;		using namespace std;
 
 const int numImages = 40;
 const int numPoints = 300;
-const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/";
+const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
+const char imExt[] = ".tiff";
+const int imLocLength = strlen(imDir) + strlen(imExt) + 4;
 
 struct imageData {
 	// Mat points(numPoints, 2, CV_32FC1);
@@ -33,8 +35,8 @@ int main() {
 
 
 	printf("setting up first image\n");
-	char imageLocation[100];
-	sprintf(imageLocation, "%s%s%04d%s", imDir,"left_rect_crop_",0,".tiff");
+	char imageLocation[imLocLength];
+	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
 	// imshow("fig",currIm1);

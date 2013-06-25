@@ -49,7 +49,7 @@ int main() {
 	namedWindow("fig", CV_WINDOW_AUTOSIZE);
 	Mat currPlot1 = currIm1.clone();
 	for (int i = 0; i < currIm1Data.correspondencesNext.rows; i++) {
-		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 1, Scalar(255,0,0), 1, 8, 0);
+		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
 		// circle(currPlot1,Point(500,500),5,Scalar(255,0,0),3,8,0);
 	}
 	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
@@ -110,7 +110,7 @@ Mat harris(Mat im, vector<double>& strengths) {
 	}
 	
 	//extract coordinates of nonzero points (the max pts)
-	Mat corners = Mat::zeros(countNonZero(maxPts),2,CV_32SC1);
+	Mat corners = Mat::zeros(countNonZero(maxPts),2,CV_32FC1);
 	strengths.reserve(corners.rows);
 	// findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
 	int rowIndex = 0;
@@ -118,8 +118,8 @@ Mat harris(Mat im, vector<double>& strengths) {
 		for (int col = 0; col < maxPts.cols; col++) {
 			maxVal = maxPts.at<double>(row,col);
 			if (maxVal != 0) {
-				corners.at<int>(rowIndex,1) = col;
-				corners.at<int>(rowIndex,2) = row;
+				corners.at<float>(rowIndex,1) = (float) col;
+				corners.at<float>(rowIndex,2) = (float) row;
 				strengths.push_back(maxVal);
 				rowIndex++;
 			}
@@ -129,7 +129,6 @@ Mat harris(Mat im, vector<double>& strengths) {
 }
 
 Mat suppress(Mat corners, const vector<double>& strengths) {
-	const int numPoints = 300;
 	Mat suppressedPoints = Mat::zeros(300,2,CV_32FC1);
 	float currDist, minDist, xi, xj, yi, yj;
 	vector< pair<float,float> > distances;
@@ -140,10 +139,10 @@ Mat suppress(Mat corners, const vector<double>& strengths) {
 		for (int j = 0; j < corners.rows; j++) {
 			if (i != j) {
 				if (strengths[i] < (strengths[j]*.9)) {
-					xi = (float) corners.at<int>(i,1);
-					yi = (float) corners.at<int>(i,2);
-					xj = (float) corners.at<int>(j,1);
-					yj = (float) corners.at<int>(j,2);
+					xi = corners.at<float>(i,1);
+					yi = corners.at<float>(i,2);
+					xj = corners.at<float>(j,1);
+					yj = corners.at<float>(j,2);
 					currDist = sqrt(((xj-xi)*(xj-xi)) + ((yj-yi)*(yj-yi)));
 					if (currDist < minDist) minDist = currDist;
 				}
@@ -153,10 +152,10 @@ Mat suppress(Mat corners, const vector<double>& strengths) {
 	}
 	sort(distances.begin(), distances.end(), comparePair);
 	for (int i = 0; i < numPoints; i++) {
-		xi = (float) corners.at<int>(distances[i].second,1);
-		yi = (float) corners.at<int>(distances[i].second,2);
-		suppressedPoints.at<double>(i,1) = xi;
-		suppressedPoints.at<double>(i,2) = yi;
+		xi = corners.at<float>(distances[i].second,1);
+		yi = corners.at<float>(distances[i].second,2);
+		suppressedPoints.at<float>(i,1) = xi;
+		suppressedPoints.at<float>(i,2) = yi;
 	}
 	return suppressedPoints;
 }

@@ -69,7 +69,7 @@ Mat harris(Mat im) {
 	Mat maxPts = Mat::zeros(im.size(), CV_8UC1);
 	Mat currPoint = Mat::zeros(1,2,CV_32FC1);
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
-	Point* currMax;
+	Point currMax;
 
 	cornerHarris(im, harrisImage, 3, 3, 0.04, BORDER_DEFAULT); //not sure about the k parameter
 
@@ -90,8 +90,8 @@ Mat harris(Mat im) {
 	for (int row = 0; row < harrisHeight-suppressSize+1; row++) {
 		for (int col = 0; col < harrisWidth-suppressSize+1; col++) {
 			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
-			minMaxLoc(window, NULL, NULL, NULL, currMax);
-			maxPts.at<unsigned char>((*currMax).y+row,(*currMax).x+col) = 1;
+			minMaxLoc(window, 0, 0, 0, &currMax, noArray());
+			maxPts.at<unsigned char>((currMax).y+row,(currMax).x+col) = 1;
 		}
 	}
 	

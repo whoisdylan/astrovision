@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <string>
+#include <cmath>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -22,6 +23,7 @@ struct imageData {
 // void nccPyramidMatch(Mat, Mat, Mat, imageData&);
 Mat harris(Mat, vector<double>&);
 Mat suppress(Mat, const vector<double>&);
+bool comparePair(const pair<float, float>&, const pair<float, float>&);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
@@ -41,13 +43,13 @@ int main() {
 	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	Mat corners = harris(currIm1, strengths);
-	currIm1Data.correspondencesNext = suppress(corners, const strengths);
-	currIm1Data.correspondencesPrev = NULL;
 	printf("%d corners found\n",corners.rows);
+	currIm1Data.correspondencesNext = suppress(corners, strengths);
+	// currIm1Data.correspondencesPrev = NULL;
 	namedWindow("fig", CV_WINDOW_AUTOSIZE);
 	Mat currPlot1 = currIm1.clone();
-	for (int i = 0; i < corners.rows; i++) {
-		circle(currPlot1, Point(corners.at<int>(i,1),corners.at<int>(i,2)), 1, Scalar(255,0,0), 1, 8, 0);
+	for (int i = 0; i < currIm1Data.correspondencesNext.rows; i++) {
+		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 1, Scalar(255,0,0), 1, 8, 0);
 		// circle(currPlot1,Point(500,500),5,Scalar(255,0,0),3,8,0);
 	}
 	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
@@ -109,7 +111,7 @@ Mat harris(Mat im, vector<double>& strengths) {
 	
 	//extract coordinates of nonzero points (the max pts)
 	Mat corners = Mat::zeros(countNonZero(maxPts),2,CV_32SC1);
-	strengths.resize(corners.rows);
+	strengths.reserve(corners.rows);
 	// findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
 	int rowIndex = 0;
 	for (int row = 0; row < maxPts.rows; row++) {
@@ -127,5 +129,38 @@ Mat harris(Mat im, vector<double>& strengths) {
 }
 
 Mat suppress(Mat corners, const vector<double>& strengths) {
+	const int numPoints = 300;
+	Mat suppressedPoints = Mat::zeros(300,2,CV_32FC1);
+	float currDist, minDist, xi, xj, yi, yj;
+	vector< pair<float,float> > distances;
+	distances.reserve(corners.rows);
+	
+	for (int i = 0; i < corners.rows; i++) {
+		minDist = INFINITY;
+		for (int j = 0; j < corners.rows; j++) {
+			if (i != j) {
+				if (strengths[i] < (strengths[j]*.9)) {
+					xi = (float) corners.at<int>(i,1);
+					yi = (float) corners.at<int>(i,2);
+					xj = (float) corners.at<int>(j,1);
+					yj = (float) corners.at<int>(j,2);
+					currDist = sqrt(((xj-xi)*(xj-xi)) + ((yj-yi)*(yj-yi)));
+					if (currDist < minDist) minDist = currDist;
+				}
+			}
+		}
+		distances.push_back(pair<float,float>(minDist,i));
+	}
+	sort(distances.begin(), distances.end(), comparePair);
+	for (int i = 0; i < numPoints; i++) {
+		xi = (float) corners.at<int>(distances[i].second,1);
+		yi = (float) corners.at<int>(distances[i].second,2);
+		suppressedPoints.at<double>(i,1) = xi;
+		suppressedPoints.at<double>(i,2) = yi;
+	}
+	return suppressedPoints;
+}
 
+bool comparePair (const pair<float, float>& pair1, const pair<float, float>& pair2) {
+	return pair1.first > pair2.first;
 }

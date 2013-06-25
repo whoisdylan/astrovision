@@ -86,7 +86,7 @@ Mat harris(Mat im) {
 		for (int col = 0; col < harrisWidth-suppressSize+1; col++) {
 			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
 			minMaxLoc(window, NULL, NULL, NULL, currMax);
-			maxPts.at<int>((*currMax).y+row,(*currMax).x+col) = 1;
+			maxPts.at<unsigned char>((*currMax).y+row,(*currMax).x+col) = 1;
 		}
 	}
 	
@@ -96,9 +96,9 @@ Mat harris(Mat im) {
 	int rowIndex = 0;
 	for (int row = 0; row < maxPts.rows; row++) {
 		for (int col = 0; col < maxPts.cols; col++) {
-			if (maxPts.at<int>(row,col) == 1) {
-				corners.at<int>(rowIndex,1) = col;
-				corners.at<int>(rowIndex,2) = row;
+			if (maxPts.at<unsigned char>(row,col) == 1) {
+				corners.at<float>(rowIndex,1) = col;
+				corners.at<float>(rowIndex,2) = row;
 				rowIndex++;
 			}
 		}

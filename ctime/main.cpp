@@ -92,8 +92,8 @@ int main() {
 	// imshow("fig2",currPlot2);
 	// waitKey(0);
 
-	writeMat(currIm1Data.correspondencesNext, "corrNextInt.txt");
-	writeMat(currIm2Data.correspondencesPrev, "corrPrevInt.txt");
+	writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
+	writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
 
 	// for (int i = 2; i < numImages; i++) {
 	// 	printf("processing images %d and %d\n", i, i+1);
@@ -128,8 +128,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 
 	for (int i = 0; i < numPoints; i++) {
-		currRow = round(im1Pts.at<float>(i,2));
-		currCol = round(im1Pts.at<float>(i,1));
+		currCol = round(im1Pts.at<float>(i,0));
+		currRow = round(im1Pts.at<float>(i,1));
 		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
 		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 
@@ -144,8 +144,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 		//threshold and russian granny the ncc result
 		if ((peakCorrVal < threshCorr) || (peakCorrVal-secondPeakVal < russianGranny)) {
 			invalidCount = invalidCount + 1;
+			im2Data.correspondencesPrev.at<float>(i,0) = NAN;
 			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
-			im2Data.correspondencesPrev.at<float>(i,2) = NAN;
 		}
 		else {
 			rowOffset = ((float) peakCorrLoc.y) - (float) (windowHalfSize - descHalfSize);
@@ -165,15 +165,15 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			//new subpixel offset calculation method
 			rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
 			colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
-			rowOffset = 0; colOffset = 0;
+			// rowOffset = 0; colOffset = 0;
 			currIm2Row = currRow + rowOffset;
 			currIm2Col = currCol + colOffset;
 
 			if (rowOffset > maxRowOffset) maxRowOffset = rowOffset;
 			if (colOffset > maxColOffset) maxColOffset = colOffset;
 
-			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Col;
-			im2Data.correspondencesPrev.at<float>(i,2) = currIm2Row;
+			im2Data.correspondencesPrev.at<float>(i,0) = currIm2Col;
+			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Row;
 
 			//check if new point is outside of the tolerance frame
 			if ((currIm2Row < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize))) {
@@ -183,8 +183,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			}
 			//if they're still valid, add them to the next set of correspondences
 			// else {
-				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
-				im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
+				im2Data.correspondencesNext.at<float>(i,0) = round(currIm2Col);
+				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Row);
 			// }
 		}
 	}
@@ -231,7 +231,6 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	Mat window = Mat::zeros(3,3,CV_32FC1);
 	Mat maxPts = Mat::zeros(im.size(), CV_64FC1);
-	Mat currPoint = Mat::zeros(1,2,CV_32FC1);
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
 	Point currMax;
 	double maxVal;
@@ -269,8 +268,8 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 		for (int col = 0; col < maxPts.cols; col++) {
 			maxVal = maxPts.at<double>(row,col);
 			if (maxVal != 0) {
-				corners.at<float>(rowIndex,1) = (float) col;
-				corners.at<float>(rowIndex,2) = (float) row;
+				corners.at<float>(rowIndex,0) = (float) col;
+				corners.at<float>(rowIndex,1) = (float) row;
 				strengths.push_back(maxVal);
 				rowIndex++;
 			}
@@ -288,10 +287,10 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 		for (int j = 0; j < corners.rows; j++) {
 			if (i != j) {
 				if (strengths[i] < (strengths[j]*.9)) {
-					xi = corners.at<float>(i,1);
-					yi = corners.at<float>(i,2);
-					xj = corners.at<float>(j,1);
-					yj = corners.at<float>(j,2);
+					xi = corners.at<float>(i,0);
+					yi = corners.at<float>(i,1);
+					xj = corners.at<float>(j,0);
+					yj = corners.at<float>(j,1);
 					currDist = sqrt(((xj-xi)*(xj-xi)) + ((yj-yi)*(yj-yi)));
 					if (currDist < minDist) minDist = currDist;
 				}
@@ -301,10 +300,10 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 	}
 	sort(distances.begin(), distances.end(), comparePair);
 	for (int i = 0; i < numPoints; i++) {
-		xi = corners.at<float>(distances[i].second,1);
-		yi = corners.at<float>(distances[i].second,2);
-		suppressedPoints.at<float>(i,1) = xi;
-		suppressedPoints.at<float>(i,2) = yi;
+		xi = corners.at<float>(distances[i].second,0);
+		yi = corners.at<float>(distances[i].second,1);
+		suppressedPoints.at<float>(i,0) = xi;
+		suppressedPoints.at<float>(i,1) = yi;
 	}
 }
 

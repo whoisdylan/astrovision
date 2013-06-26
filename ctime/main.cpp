@@ -48,7 +48,7 @@ int main() {
 	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
-	printf("%d corners found\n",corners.rows);
+	// printf("%d corners found\n",corners.rows);
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 
@@ -68,33 +68,36 @@ int main() {
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 	imageSetLefts.push_back(currIm2Data);
-	namedWindow("fig", CV_WINDOW_AUTOSIZE);
-	namedWindow("fig2", CV_WINDOW_AUTOSIZE);
-	Mat currPlot1 = currIm1.clone();
-	Mat currPlot2 = currIm2.clone();
-	for (int i = 0; i < numPoints; i++) {
-		if (!isnan(currIm1Data.correspondencesNext.at<float>(i,1))) {
-			circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
-		}
-		if (!isnan(currIm2Data.correspondencesPrev.at<float>(i,1))) {
-			// printf("currPt: %f\n", currIm2Data.correspondencesPrev.at<float>(i,1));
-			circle(currPlot2, Point(currIm2Data.correspondencesPrev.at<float>(i,1),currIm2Data.correspondencesPrev.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
-		}
-	}
-	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
-	resize(currPlot2,currPlot2,Size(round(.5*currPlot2.cols),round(.5*currPlot2.rows)),.5,.5,INTER_CUBIC);
-	imshow("fig",currPlot1);
-	imshow("fig2",currPlot2);
-	waitKey(0);
-
-	// for (int i = 2; i < numImages; i++) {
-	// 	printf("processing images %d and %d\n", i, i+1);
-	// 	currIm1Data = currIm2Data;
-	// 	currIm1 = currIm2;
-	// 	currIm2 = imread(sprintf("%s %s %04d %s",imDir,"left_rect_crop_",i,".tiff"), CV_LOAD_IMAGE_GRAYSCALE);
-	// 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
-	// 	imageSetLefts.push_back(currIm2Data);
+	
+	//plot correspondence pair
+	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
+	// namedWindow("fig2", CV_WINDOW_AUTOSIZE);
+	// Mat currPlot1 = currIm1.clone();
+	// Mat currPlot2 = currIm2.clone();
+	// for (int i = 0; i < numPoints; i++) {
+	// 	if (!isnan(currIm1Data.correspondencesNext.at<float>(i,1))) {
+	// 		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
+	// 	}
+	// 	if (!isnan(currIm2Data.correspondencesPrev.at<float>(i,1))) {
+	// 		// printf("currPt: %f\n", currIm2Data.correspondencesPrev.at<float>(i,1));
+	// 		circle(currPlot2, Point(currIm2Data.correspondencesPrev.at<float>(i,1),currIm2Data.correspondencesPrev.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
+	// 	}
 	// }
+	// resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
+	// resize(currPlot2,currPlot2,Size(round(.5*currPlot2.cols),round(.5*currPlot2.rows)),.5,.5,INTER_CUBIC);
+	// imshow("fig",currPlot1);
+	// imshow("fig2",currPlot2);
+	// waitKey(0);
+
+	for (int i = 2; i < numImages; i++) {
+		printf("processing images %d and %d\n", i, i+1);
+		currIm1Data = currIm2Data;
+		currIm1 = currIm2;
+		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
+		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
+		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
+		imageSetLefts.push_back(currIm2Data);
+	}
 }
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
@@ -149,9 +152,13 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 
 			matchTemplate(windowResize, descResize, xcc2, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, Mat());
-			// printf("suboffset: %d,%d\n", peakCorrLoc.x,peakCorrLoc.y);
+			//similar to old offset calculation method
+			// rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
+			// colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
+			//new subpixel offset calculation method
 			rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
 			colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
+			rowOffset = 0; colOffset = 0;
 			currIm2Row = currRow + rowOffset;
 			currIm2Col = currCol + colOffset;
 
@@ -169,8 +176,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			}
 			//if they're still valid, add them to the next set of correspondences
 			// else {
-			// 	im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
-			// 	im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
+				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
+				im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
 			// }
 		}
 	}

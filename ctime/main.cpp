@@ -32,7 +32,7 @@ int main() {
 	imageData currIm1Data, currIm2Data;
 	Mat currIm1, currIm2;
 	Mat corners;
-	currIm1Data.correspondencesNext.create(300,2,CV_32FC1);
+	currIm1Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 	vector<double> strengths;
 	//read in images first, fix this
 	vector<imageData> imageSetLefts;
@@ -81,8 +81,10 @@ int main() {
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
 	const float threshCorr = .9, russianGranny = -2147483648;
-	const int imHeight = im1.rows, imWidth = im1.cols, deschalfSize2 = 4, windowHalfSize2 = 5;
-	const int imScale = 4;
+	const unsigned int imHeight = im1.rows, imWidth = im1.cols, deschalfSize2 = 4, windowHalfSize2 = 5;
+	const unsigned int imScale = 4;
+	// const unsigned int xDim, yDim;
+	const bool top, left;
 	float invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
 	float currRow, currCol, rowOffset, colOffset, newRow, newCol, currIm2Row, currIm2Col;
 	double peakCorrVal, secondPeakVal;
@@ -94,8 +96,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
 	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
 	Mat xcc, xcc2;
-	im2Data.correspondencesPrev.create(300,2,CV_32FC1);
-	im2Data.correspondencesNext.create(300,2,CV_32FC1);
+	im2Data.correspondencesPrev.create(numPoints,2,CV_32FC1);
+	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 
 	for (int i = 0; i < numPoints; i++) {
 		currRow = im1Pts.at<float>(i,2);
@@ -142,18 +144,52 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			//check if new point is outside of the tolerance frame
 			if ((currIm2Row < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize))) {
 				invalidCount = invalidCount + 1;
-				im2Data.correspondencesPrev.at<float>(i,1) = NAN;
-				im2Data.correspondencesPrev.at<float>(i,2) = NAN;
+				// im2Data.correspondencesPrev.at<float>(i,1) = NAN;
+				// im2Data.correspondencesPrev.at<float>(i,2) = NAN;
 			}
-			else {
-				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
-				im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
-			}
+			//if they're still valid, add them to the next set of correspondences
+			// else {
+			// 	im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
+			// 	im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
+			// }
 		}
 	}
 
-
-
+//detect new points if necessary
+if (invalidCount != 0) {
+	printf("acquiring new points\n");
+	//try to find points intelligently (mostly disabled)
+	// if (maxRowOffset < 0) {
+	// 	// yDim = imHeight - halfSize - round(maxRowOffset);
+	// 	top = false;
+	// }
+	// else {
+	// 	// yDim = halfSize + round(maxRowOffset);
+	// 	top = true;
+	// }
+	// if (maxColOffset < 0) {
+	// 	// xDim = imWidth - halfSize - round(maxColOffset);
+	// 	left = false;
+	// }
+	// else {
+	// 	// xDim = halfSize + round(maxColOffset);
+	// 	left = true;
+	// }
+	vector<double> im2Strengths;
+	Mat im2Corners;
+	// Mat im2Suppressed(numPoints,2,CV_32FC1);
+	harris(im2, im2Strengths, im2Corners);
+	
+	//otherwise look for points not in original image
+	if (im2Corners.rows < invalidCount) {
+		printf("no new features, widening search region");
+		// harris(im2, im2Strengths, im2Corners);
+		// suppress(im2Corners, im2Strengths, im2Suppressed);
+		//see if each point exists in old list of points, only add invalidCount number new points
+	}
+	else {
+		suppress(im2Corners, im2Strengths, im2Data.correspondencesNext);
+	}
 }
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates

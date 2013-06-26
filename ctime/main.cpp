@@ -133,7 +133,25 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			currIm2Row = currRow + rowOffset;
 			currIm2Col = currCol + colOffset;
 
-			if
+			if (rowOffset > maxRowOffset) maxRowOffset = rowOffset;
+			if (colOffset > maxColOffset) maxColOffset = colOffset;
+
+			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Col;
+			im2Data.correspondencesPrev.at<float>(i,2) = currIm2Row;
+
+			//check if new point is outside of the tolerance frame
+			if ((currIm2Row < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize))) {
+				invalidCount = invalidCount + 1;
+				im2Data.correspondencesPrev.at<float>(i,1) = NAN;
+				im2Data.correspondencesPrev.at<float>(i,2) = NAN;
+			}
+			else {
+				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Col);
+				im2Data.correspondencesNext.at<float>(i,2) = round(currIm2Row);
+			}
+		}
+	}
+
 
 
 }

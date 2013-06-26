@@ -92,20 +92,20 @@ int main() {
 	// imshow("fig2",currPlot2);
 	// waitKey(0);
 
-	writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
-	writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
+	// writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
+	// writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
 	// cout << currIm2Data.correspondencesPrev.colRange(Range(1,2)) << endl;
 
-	// for (int i = 2; i < numImages; i++) {
-	// 	printf("processing images %d and %d\n", i, i+1);
-	// 	currIm1Data = currIm2Data;
-	// 	currIm1 = currIm2;
-	// 	sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
-	// 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-	// 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
-	// 	imageSetLefts.push_back(currIm2Data);
-	// }
-	// printf("finished processing images\n");
+	for (int i = 2; i < numImages; i++) {
+		printf("processing images %d and %d\n", i, i+1);
+		currIm1Data = currIm2Data;
+		currIm1 = currIm2;
+		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
+		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
+		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
+		imageSetLefts.push_back(currIm2Data);
+	}
+	printf("finished processing images\n");
 }
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {

@@ -68,6 +68,24 @@ int main() {
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 	imageSetLefts.push_back(currIm2Data);
+	namedWindow("fig", CV_WINDOW_AUTOSIZE);
+	namedWindow("fig2", CV_WINDOW_AUTOSIZE);
+	Mat currPlot1 = currIm1.clone();
+	Mat currPlot2 = currIm2.clone();
+	for (int i = 0; i < numPoints; i++) {
+		if (!isnan(currIm1Data.correspondencesNext.at<float>(i,1))) {
+			circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
+		}
+		if (!isnan(currIm2Data.correspondencesPrev.at<float>(i,1))) {
+			// printf("currPt: %f\n", currIm2Data.correspondencesPrev.at<float>(i,1));
+			circle(currPlot2, Point(currIm2Data.correspondencesPrev.at<float>(i,1),currIm2Data.correspondencesPrev.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
+		}
+	}
+	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
+	resize(currPlot2,currPlot2,Size(round(.5*currPlot2.cols),round(.5*currPlot2.rows)),.5,.5,INTER_CUBIC);
+	imshow("fig",currPlot1);
+	imshow("fig2",currPlot2);
+	waitKey(0);
 
 	// for (int i = 2; i < numImages; i++) {
 	// 	printf("processing images %d and %d\n", i, i+1);
@@ -106,11 +124,12 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 
 		//compute NCC
-		matchTemplate(currDesc, currWindow, xcc, CV_TM_CCORR_NORMED);
-		minMaxLoc(xcc, 0, &peakCorrVal, 0, &peakCorrLoc, noArray());
-		xcc.at<float>(peakCorrLoc.y,peakCorrLoc.x) = -2147483648;
-		//find second max for russian granny
-		minMaxLoc(xcc, 0, &secondPeakVal, 0, 0, noArray());
+		matchTemplate(currWindow, currDesc, xcc, CV_TM_CCORR_NORMED);
+		minMaxLoc(xcc, 0, &peakCorrVal, 0, &peakCorrLoc, Mat());
+		xcc.at<float>((float) peakCorrLoc.y,(float) peakCorrLoc.x) = -2147483648;
+		//find second max for russian granny, disabled for now
+		// minMaxLoc(xcc, 0, &secondPeakVal, 0, 0, Mat());
+		secondPeakVal = 0;
 
 		//threshold and russian granny the ncc result
 		if ((peakCorrVal < threshCorr) || (peakCorrVal-secondPeakVal < russianGranny)) {
@@ -119,8 +138,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			im2Data.correspondencesPrev.at<float>(i,2) = NAN;
 		}
 		else {
-			rowOffset = peakCorrLoc.y - halfSize;
-			colOffset = peakCorrLoc.x - halfSize;
+			rowOffset = ((float) peakCorrLoc.y) - (float) (windowHalfSize - descHalfSize);
+			colOffset = ((float) peakCorrLoc.x) - (float) (windowHalfSize - descHalfSize);
 			newRow = currRow + rowOffset;
 			newCol = currCol + colOffset;
 			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
@@ -128,10 +147,11 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			resize(newDesc, descResize, Size(imScale*descHalfSize2,imScale*descHalfSize2), 0, 0, INTER_CUBIC);
 			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
 
-			matchTemplate(descResize, windowResize, xcc2, CV_TM_CCORR_NORMED);
-			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, noArray());
-			rowOffset = peakCorrLoc.y/imScale - descHalfSize2*2 + ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
-			colOffset = peakCorrLoc.x/imScale - descHalfSize2*2 + ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
+			matchTemplate(windowResize, descResize, xcc2, CV_TM_CCORR_NORMED);
+			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, Mat());
+			// printf("suboffset: %d,%d\n", peakCorrLoc.x,peakCorrLoc.y);
+			rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
+			colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
 			currIm2Row = currRow + rowOffset;
 			currIm2Col = currCol + colOffset;
 
@@ -218,9 +238,9 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	for (int row = 0; row < harrisHeight-suppressSize+1; row++) {
 		for (int col = 0; col < harrisWidth-suppressSize+1; col++) {
 			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
-			minMaxLoc(window, 0, &maxVal, 0, &currMax, noArray());
+			minMaxLoc(window, 0, &maxVal, 0, &currMax, Mat());
 			if (maxVal > .00001) {
-				maxPts.at<double>((currMax).y+row,(currMax).x+col) = maxVal;
+				maxPts.at<double>(((double) currMax.y)+row,((double) currMax.x)+col) = maxVal;
 			}
 		}
 	}

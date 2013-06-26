@@ -94,6 +94,7 @@ int main() {
 
 	writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
 	writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
+	// cout << currIm2Data.correspondencesPrev.colRange(Range(1,2)) << endl;
 
 	// for (int i = 2; i < numImages; i++) {
 	// 	printf("processing images %d and %d\n", i, i+1);
@@ -166,8 +167,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
 			colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
 			// rowOffset = 0; colOffset = 0;
-			currIm2Row = currRow + rowOffset;
-			currIm2Col = currCol + colOffset;
+			currIm2Row = newRow + rowOffset;
+			currIm2Col = newCol + colOffset;
 
 			if (rowOffset > maxRowOffset) maxRowOffset = rowOffset;
 			if (colOffset > maxColOffset) maxColOffset = colOffset;
@@ -320,7 +321,7 @@ void writeMat(const Mat& matrix, const char *filename) {
 	else {
 		for (int i = 0; i < matrix.rows; i++) {
 			for (int j = 0; j < matrix.cols; j++) {
-				fout << matrix.at<float>(i,j) << "\t";
+				fout << (float) matrix.at<float>(i,j) << "\t";
 			}
 			fout << endl;
 		}

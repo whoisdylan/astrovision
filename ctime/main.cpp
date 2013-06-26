@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <string>
 #include <cmath>
+#include <iostream>
+#include <fstream>
 #include "opencv2/core/core.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -27,6 +29,7 @@ void nccPyramidMatch(const Mat&, const Mat&, Mat&, imageData&);
 void harris(const Mat&, vector<double>&, Mat&);
 void suppress(const Mat&, const vector<double>&, Mat&);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
+void writeMat(const Mat&, const char *);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
@@ -89,16 +92,19 @@ int main() {
 	// imshow("fig2",currPlot2);
 	// waitKey(0);
 
-	for (int i = 2; i < numImages; i++) {
-		printf("processing images %d and %d\n", i, i+1);
-		currIm1Data = currIm2Data;
-		currIm1 = currIm2;
-		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
-		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
-		imageSetLefts.push_back(currIm2Data);
-	}
-	printf("finished processing images\n");
+	writeMat(currIm1Data.correspondencesNext, "corrNextInt.txt");
+	writeMat(currIm2Data.correspondencesPrev, "corrPrevInt.txt");
+
+	// for (int i = 2; i < numImages; i++) {
+	// 	printf("processing images %d and %d\n", i, i+1);
+	// 	currIm1Data = currIm2Data;
+	// 	currIm1 = currIm2;
+	// 	sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
+	// 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
+	// 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
+	// 	imageSetLefts.push_back(currIm2Data);
+	// }
+	// printf("finished processing images\n");
 }
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
@@ -304,4 +310,21 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 
 bool comparePair (const pair<float, float>& pair1, const pair<float, float>& pair2) {
 	return pair1.first > pair2.first;
+}
+
+void writeMat(const Mat& matrix, const char *filename) {
+	ofstream fout(filename);
+
+	if (!fout) {
+		cout << "error, file not opened" << endl;
+	}
+	else {
+		for (int i = 0; i < matrix.rows; i++) {
+			for (int j = 0; j < matrix.cols; j++) {
+				fout << matrix.at<float>(i,j) << "\t";
+			}
+			fout << endl;
+		}
+		fout.close();
+	}
 }

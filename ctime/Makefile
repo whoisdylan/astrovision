@@ -1,6 +1,6 @@
 CC = g++
 # CFLAGS = -Wall -Wextra -Werror -O2
-CFLAGS = -g -Wall -Wextra -O2 `pkg-config --cflags opencv` 
+CFLAGS = -Wall -Wextra -O2 `pkg-config --cflags opencv` 
 OBJS = astrovision.o
 LIBS = `pkg-config --libs opencv`
 

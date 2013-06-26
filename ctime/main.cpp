@@ -98,6 +98,7 @@ int main() {
 		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 		imageSetLefts.push_back(currIm2Data);
 	}
+	printf("finished processing images\n");
 }
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {

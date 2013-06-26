@@ -21,13 +21,15 @@ struct imageData {
 };
 
 // void nccPyramidMatch(Mat, Mat, Mat, imageData&);
-Mat harris(Mat, vector<double>&);
-Mat suppress(Mat, const vector<double>&);
+void harris(Mat, vector<double>&, Mat&);
+void suppress(Mat, const vector<double>&, Mat&);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
 	Mat currIm1, currIm2;
+	Mat corners;
+	currIm1Data.correspondencesNext.create(300,2,CV_32FC1);
 	vector<double> strengths;
 	//read in images first, fix this
 	vector<imageData> imageSetLefts;
@@ -42,9 +44,9 @@ int main() {
 	char imageLocation[imLocLength];
 	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-	Mat corners = harris(currIm1, strengths);
+	harris(currIm1, strengths, corners);
 	printf("%d corners found\n",corners.rows);
-	currIm1Data.correspondencesNext = suppress(corners, strengths);
+	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 	namedWindow("fig", CV_WINDOW_AUTOSIZE);
 	Mat currPlot1 = currIm1.clone();
@@ -75,7 +77,7 @@ int main() {
 // }
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates
-Mat harris(Mat im, vector<double>& strengths) {
+void harris(Mat im, vector<double>& strengths, Mat& corners) {
 	Mat window = Mat::zeros(3,3,CV_32FC1);
 	Mat maxPts = Mat::zeros(im.size(), CV_64FC1);
 	Mat currPoint = Mat::zeros(1,2,CV_32FC1);
@@ -110,7 +112,8 @@ Mat harris(Mat im, vector<double>& strengths) {
 	}
 	
 	//extract coordinates of nonzero points (the max pts)
-	Mat corners = Mat::zeros(countNonZero(maxPts),2,CV_32FC1);
+	// corners = M(countNonZero(maxPts),2,CV_32FC1);
+	corners.create(countNonZero(maxPts),2,CV_32FC1);
 	strengths.reserve(corners.rows);
 	// findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
 	int rowIndex = 0;
@@ -125,11 +128,9 @@ Mat harris(Mat im, vector<double>& strengths) {
 			}
 		}
 	}
-	return corners;
 }
 
-Mat suppress(Mat corners, const vector<double>& strengths) {
-	Mat suppressedPoints = Mat::zeros(300,2,CV_32FC1);
+void suppress(Mat corners, const vector<double>& strengths, Mat& suppressedPoints) {
 	float currDist, minDist, xi, xj, yi, yj;
 	vector< pair<float,float> > distances;
 	distances.reserve(corners.rows);
@@ -157,7 +158,6 @@ Mat suppress(Mat corners, const vector<double>& strengths) {
 		suppressedPoints.at<float>(i,1) = xi;
 		suppressedPoints.at<float>(i,2) = yi;
 	}
-	return suppressedPoints;
 }
 
 bool comparePair (const pair<float, float>& pair1, const pair<float, float>& pair2) {

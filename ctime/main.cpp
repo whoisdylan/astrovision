@@ -11,6 +11,9 @@ const int numPoints = 300;
 const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
 const char imExt[] = ".tiff";
 const int imLocLength = strlen(imDir) + strlen(imExt) + 4;
+const int descHalfSize = 16;
+const int windowHalfSize = 64;
+const int halfSize = descHalfSize + windowHalfSize;
 
 struct imageData {
 	// Mat points(numPoints, 2, CV_32FC1);
@@ -48,20 +51,23 @@ int main() {
 	printf("%d corners found\n",corners.rows);
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
-	namedWindow("fig", CV_WINDOW_AUTOSIZE);
-	Mat currPlot1 = currIm1.clone();
-	for (int i = 0; i < currIm1Data.correspondencesNext.rows; i++) {
-		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
+
+	//plot suppressed corners
+	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
+	// Mat currPlot1 = currIm1.clone();
+	// for (int i = 0; i < currIm1Data.correspondencesNext.rows; i++) {
+	// 	circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
 		// circle(currPlot1,Point(500,500),5,Scalar(255,0,0),3,8,0);
-	}
-	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
-	imshow("fig",currPlot1);
-	waitKey(0);
+	// }
+	// resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
+	// imshow("fig",currPlot1);
+	// waitKey(0);
+
 	imageSetLefts.push_back(currIm1Data);
 	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
-	// imageSetLefts.push_back(currIm2Data);
+	imageSetLefts.push_back(currIm2Data);
 
 	// for (int i = 2; i < numImages; i++) {
 	// 	printf("processing images %d and %d\n", i, i+1);
@@ -73,9 +79,45 @@ int main() {
 	// }
 }
 
-// void nccPyramidMatch(Mat im1, Mat im2, Mat im1Pts, imageData& im2Data) {
-// 
-// }
+void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
+	const float threshCorr = .9, russianGranny = -2147483648;
+	const int imHeight = im1.rows, imWidth = im1.cols;
+	int invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
+	float currRow, currCol, rowOffset, colOffset, newRow, newCol
+	double peakCorrVal, secondPeakVal;
+	Point peakCorrLoc;
+	Mat currDesc(deschalfSize+descHalfSize,descHalfSize+descHalfSize,CV_32FC1);
+	Mat currWindow(windowHalfSize+windowHalfSize,windowHalfSize+windowHalfSize,CV_32FC1);
+	Mat xcc;
+	im2Data.correspondencesPrev.create(300,2,CV_32FC1);
+	im2Data.correspondencesNext.create(300,2,CV_32FC1);
+
+	for (int i = 0; i < numPoints; i++) {
+		currRow = im1Pts.at<float>(i,2);
+		currCol = im1Pts.at<float>(i,1);
+		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),(currCol-descHalfSize,currCol+descHalfSize));
+		currWindow = im2((currRow-windowHalfSize,currRow+windowHalfSize),(currCol-windowHalfSize,currCol+windowHalfSize));
+
+		//compute NCC
+		cvMatchTemplate(currDesc, currWindow, xcc, CV_TM_CCORR_NORMED);
+		minMaxLoc(xcc, 0, &peakCorrVal, 0, &peakCorrLoc, noArray());
+		xcc.at<float>(peakCorrLoc.y,peakCorrLoc.x) = -2147483648;
+		//find second max for russian granny
+		minMaxLoc(xcc, 0, &secondPeakVal, 0, 0, noArray());
+
+		//threshold and russian granny the ncc result
+		if ((peakCorrVal < threshCorr) || (peakCorr-secondPeak < russianGranny)) {
+			invalidCount = invalidCount + 1;
+			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
+			im2Data.correspondencesPrev.at<float>(i,2) = NAN;
+		}
+		else {
+			rowOffset = peakCorrLoc.y - halfSize;
+			colOffset = peakCorrLoc.x - halfSize;
+			newRow = currRow + rowOffset;
+			newCol = currCol + colOffset;
+
+}
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates
 void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
@@ -88,9 +130,6 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 
 	cornerHarris(im, harrisImage, 3, 3, 0.04, BORDER_DEFAULT); //not sure about the k parameter
 
-	int descHalfSize = 16;
-	int windowHalfSize = 64;
-	int halfSize = descHalfSize + windowHalfSize;
 	int harrisWidth = harrisImage.cols;
 	int harrisHeight = harrisImage.rows;
 	int suppressSize = 3;

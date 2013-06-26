@@ -20,9 +20,9 @@ struct imageData {
 	Mat correspondencesNext;
 };
 
-// void nccPyramidMatch(Mat, Mat, Mat, imageData&);
-void harris(Mat, vector<double>&, Mat&);
-void suppress(Mat, const vector<double>&, Mat&);
+void nccPyramidMatch(const Mat&, const Mat&, Mat&, imageData&);
+void harris(const Mat&, vector<double>&, Mat&);
+void suppress(const Mat&, const vector<double>&, Mat&);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
 
 int main() {
@@ -57,9 +57,10 @@ int main() {
 	resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
 	imshow("fig",currPlot1);
 	waitKey(0);
-	// imageSetLefts.push_back(currIm1Data);
-	// currIm2 = imread(sprintf("%s %s %04d %s",imDir,"left_rect_crop_",1,".tiff"), CV_LOAD_IMAGE_GRAYSCALE);
-	// nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
+	imageSetLefts.push_back(currIm1Data);
+	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
+	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
+	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 	// imageSetLefts.push_back(currIm2Data);
 
 	// for (int i = 2; i < numImages; i++) {
@@ -77,7 +78,7 @@ int main() {
 // }
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates
-void harris(Mat im, vector<double>& strengths, Mat& corners) {
+void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	Mat window = Mat::zeros(3,3,CV_32FC1);
 	Mat maxPts = Mat::zeros(im.size(), CV_64FC1);
 	Mat currPoint = Mat::zeros(1,2,CV_32FC1);
@@ -130,7 +131,7 @@ void harris(Mat im, vector<double>& strengths, Mat& corners) {
 	}
 }
 
-void suppress(Mat corners, const vector<double>& strengths, Mat& suppressedPoints) {
+void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppressedPoints) {
 	float currDist, minDist, xi, xj, yi, yj;
 	vector< pair<float,float> > distances;
 	distances.reserve(corners.rows);

@@ -124,7 +124,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			newRow = currRow + rowOffset;
 			newCol = currCol + colOffset;
 			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
-			newWindow = im2(Range(newRow-windowHalfSize2,newRow+windowHalfSize2),Range(newCol-windowHalfSize2,newCol-windowHalfSize2));
+			newWindow = im2(Range(newRow-windowHalfSize2,newRow+windowHalfSize2),Range(newCol-windowHalfSize2,newCol+windowHalfSize2));
 			resize(newDesc, descResize, Size(imScale*descHalfSize2,imScale*descHalfSize2), 0, 0, INTER_CUBIC);
 			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
 

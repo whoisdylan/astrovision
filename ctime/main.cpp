@@ -81,10 +81,10 @@ int main() {
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
 	const float threshCorr = .9, russianGranny = -2147483648;
-	const unsigned int imHeight = im1.rows, imWidth = im1.cols, deschalfSize2 = 4, windowHalfSize2 = 5;
+	const unsigned int imHeight = im1.rows, imWidth = im1.cols, descHalfSize2 = 4, windowHalfSize2 = 5;
 	const unsigned int imScale = 4;
 	// const unsigned int xDim, yDim;
-	const bool top, left;
+	// const bool top, left;
 	float invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
 	float currRow, currCol, rowOffset, colOffset, newRow, newCol, currIm2Row, currIm2Col;
 	double peakCorrVal, secondPeakVal;
@@ -100,20 +100,20 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 
 	for (int i = 0; i < numPoints; i++) {
-		currRow = im1Pts.at<float>(i,2);
-		currCol = im1Pts.at<float>(i,1);
-		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),(currCol-descHalfSize,currCol+descHalfSize));
-		currWindow = im2((currRow-windowHalfSize,currRow+windowHalfSize),(currCol-windowHalfSize,currCol+windowHalfSize));
+		currRow = round(im1Pts.at<float>(i,2));
+		currCol = round(im1Pts.at<float>(i,1));
+		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
+		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 
 		//compute NCC
-		cvMatchTemplate(currDesc, currWindow, xcc, CV_TM_CCORR_NORMED);
+		matchTemplate(currDesc, currWindow, xcc, CV_TM_CCORR_NORMED);
 		minMaxLoc(xcc, 0, &peakCorrVal, 0, &peakCorrLoc, noArray());
 		xcc.at<float>(peakCorrLoc.y,peakCorrLoc.x) = -2147483648;
 		//find second max for russian granny
 		minMaxLoc(xcc, 0, &secondPeakVal, 0, 0, noArray());
 
 		//threshold and russian granny the ncc result
-		if ((peakCorrVal < threshCorr) || (peakCorr-secondPeak < russianGranny)) {
+		if ((peakCorrVal < threshCorr) || (peakCorrVal-secondPeakVal < russianGranny)) {
 			invalidCount = invalidCount + 1;
 			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 			im2Data.correspondencesPrev.at<float>(i,2) = NAN;
@@ -123,15 +123,15 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			colOffset = peakCorrLoc.x - halfSize;
 			newRow = currRow + rowOffset;
 			newCol = currCol + colOffset;
-			newDesc = im1(Range(currRow-DescHalfSize2,currRow+descHalfSize2),(currCol-descHalfSize2,currCol+descHalfSize));
-			newWindow = im2((newRow-windowHalfSize2,newRow+windowHalfSize2),(newCol-windowHalfSize2,newCol-windowHalfSize2));
-			resize(newDesc, descResize, imScale*descHalfSize2, 0, 0, INTER_CUBIC);
-			resize(newWindow, windowResize, imScale*windowHalfSize2, 0, 0, INTER_CUBIC);
+			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
+			newWindow = im2(Range(newRow-windowHalfSize2,newRow+windowHalfSize2),Range(newCol-windowHalfSize2,newCol-windowHalfSize2));
+			resize(newDesc, descResize, Size(imScale*descHalfSize2,imScale*descHalfSize2), 0, 0, INTER_CUBIC);
+			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
 
-			cvMatchTemplate(descResize, windowResize, xcc2, CV_TM_CCORR_NORMED);
+			matchTemplate(descResize, windowResize, xcc2, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, noArray());
-			rowOffset = peakCorrLoc.y/imScale - deschalfSize2*2 + ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
-			colOffset = peakCorrLoc.x/imScale - deschalfSize2*2 + ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
+			rowOffset = peakCorrLoc.y/imScale - descHalfSize2*2 + ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
+			colOffset = peakCorrLoc.x/imScale - descHalfSize2*2 + ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
 			currIm2Row = currRow + rowOffset;
 			currIm2Col = currCol + colOffset;
 
@@ -155,40 +155,41 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 		}
 	}
 
-//detect new points if necessary
-if (invalidCount != 0) {
-	printf("acquiring new points\n");
-	//try to find points intelligently (mostly disabled)
-	// if (maxRowOffset < 0) {
-	// 	// yDim = imHeight - halfSize - round(maxRowOffset);
-	// 	top = false;
-	// }
-	// else {
-	// 	// yDim = halfSize + round(maxRowOffset);
-	// 	top = true;
-	// }
-	// if (maxColOffset < 0) {
-	// 	// xDim = imWidth - halfSize - round(maxColOffset);
-	// 	left = false;
-	// }
-	// else {
-	// 	// xDim = halfSize + round(maxColOffset);
-	// 	left = true;
-	// }
-	vector<double> im2Strengths;
-	Mat im2Corners;
-	// Mat im2Suppressed(numPoints,2,CV_32FC1);
-	harris(im2, im2Strengths, im2Corners);
-	
-	//otherwise look for points not in original image
-	if (im2Corners.rows < invalidCount) {
-		printf("no new features, widening search region");
-		// harris(im2, im2Strengths, im2Corners);
-		// suppress(im2Corners, im2Strengths, im2Suppressed);
-		//see if each point exists in old list of points, only add invalidCount number new points
-	}
-	else {
-		suppress(im2Corners, im2Strengths, im2Data.correspondencesNext);
+	//detect new points if necessary
+	if (invalidCount != 0) {
+		printf("acquiring new points\n");
+		//try to find points intelligently (mostly disabled)
+		// if (maxRowOffset < 0) {
+		// 	// yDim = imHeight - halfSize - round(maxRowOffset);
+		// 	top = false;
+		// }
+		// else {
+		// 	// yDim = halfSize + round(maxRowOffset);
+		// 	top = true;
+		// }
+		// if (maxColOffset < 0) {
+		// 	// xDim = imWidth - halfSize - round(maxColOffset);
+		// 	left = false;
+		// }
+		// else {
+		// 	// xDim = halfSize + round(maxColOffset);
+		// 	left = true;
+		// }
+		vector<double> im2Strengths;
+		Mat im2Corners;
+		// Mat im2Suppressed(numPoints,2,CV_32FC1);
+		harris(im2, im2Strengths, im2Corners);
+
+		//otherwise look for points not in original image
+		if (im2Corners.rows < invalidCount) {
+			printf("no new features, widening search region");
+			// harris(im2, im2Strengths, im2Corners);
+			// suppress(im2Corners, im2Strengths, im2Suppressed);
+			//see if each point exists in old list of points, only add invalidCount number new points
+		}
+		else {
+			suppress(im2Corners, im2Strengths, im2Data.correspondencesNext);
+		}
 	}
 }
 

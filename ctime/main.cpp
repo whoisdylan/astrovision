@@ -81,14 +81,19 @@ int main() {
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {
 	const float threshCorr = .9, russianGranny = -2147483648;
-	const int imHeight = im1.rows, imWidth = im1.cols;
-	int invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
-	float currRow, currCol, rowOffset, colOffset, newRow, newCol
+	const int imHeight = im1.rows, imWidth = im1.cols, deschalfSize2 = 4, windowHalfSize2 = 5;
+	const int imScale = 4;
+	float invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
+	float currRow, currCol, rowOffset, colOffset, newRow, newCol, currIm2Row, currIm2Col;
 	double peakCorrVal, secondPeakVal;
 	Point peakCorrLoc;
-	Mat currDesc(deschalfSize+descHalfSize,descHalfSize+descHalfSize,CV_32FC1);
-	Mat currWindow(windowHalfSize+windowHalfSize,windowHalfSize+windowHalfSize,CV_32FC1);
-	Mat xcc;
+	Mat currDesc(descHalfSize+descHalfSize,descHalfSize+descHalfSize,CV_8UC1);
+	Mat newDesc(descHalfSize2+descHalfSize2,descHalfSize2+descHalfSize2,CV_8UC1);
+	Mat descResize(descHalfSize+descHalfSize,descHalfSize+descHalfSize,CV_8UC1);
+	Mat currWindow(windowHalfSize+windowHalfSize,windowHalfSize+windowHalfSize,CV_8UC1);
+	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
+	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
+	Mat xcc, xcc2;
 	im2Data.correspondencesPrev.create(300,2,CV_32FC1);
 	im2Data.correspondencesNext.create(300,2,CV_32FC1);
 
@@ -116,6 +121,20 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			colOffset = peakCorrLoc.x - halfSize;
 			newRow = currRow + rowOffset;
 			newCol = currCol + colOffset;
+			newDesc = im1(Range(currRow-DescHalfSize2,currRow+descHalfSize2),(currCol-descHalfSize2,currCol+descHalfSize));
+			newWindow = im2((newRow-windowHalfSize2,newRow+windowHalfSize2),(newCol-windowHalfSize2,newCol-windowHalfSize2));
+			resize(newDesc, descResize, imScale*descHalfSize2, 0, 0, INTER_CUBIC);
+			resize(newWindow, windowResize, imScale*windowHalfSize2, 0, 0, INTER_CUBIC);
+
+			cvMatchTemplate(descResize, windowResize, xcc2, CV_TM_CCORR_NORMED);
+			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, noArray());
+			rowOffset = peakCorrLoc.y/imScale - deschalfSize2*2 + ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
+			colOffset = peakCorrLoc.x/imScale - deschalfSize2*2 + ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
+			currIm2Row = currRow + rowOffset;
+			currIm2Col = currCol + colOffset;
+
+			if
+
 
 }
 

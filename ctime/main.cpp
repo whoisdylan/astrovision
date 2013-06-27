@@ -104,6 +104,8 @@ int main() {
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 		imageSetLefts.push_back(currIm2Data);
+		// writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
+		// writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
 	}
 	printf("finished processing images\n");
 }
@@ -115,7 +117,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 	// const unsigned int xDim, yDim;
 	// const bool top, left;
 	float invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
-	float currRow, currCol, rowOffset, colOffset, newRow, newCol, currIm2Row, currIm2Col;
+	float currIm2Row, currIm2Col;
+	double rowOffset, colOffset, newRow, newCol, currRow, currCol;
 	double peakCorrVal, secondPeakVal;
 	Point peakCorrLoc;
 	Mat currDesc(descHalfSize+descHalfSize,descHalfSize+descHalfSize,CV_8UC1);
@@ -129,8 +132,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 
 	for (int i = 0; i < numPoints; i++) {
-		currCol = round(im1Pts.at<float>(i,0));
-		currRow = round(im1Pts.at<float>(i,1));
+		currCol = (double) round(im1Pts.at<float>(i,0));
+		currRow = (double) round(im1Pts.at<float>(i,1));
 		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
 		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 
@@ -149,8 +152,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 		}
 		else {
-			rowOffset = ((float) peakCorrLoc.y) - (float) (windowHalfSize - descHalfSize);
-			colOffset = ((float) peakCorrLoc.x) - (float) (windowHalfSize - descHalfSize);
+			rowOffset = (double) (peakCorrLoc.y - (windowHalfSize - descHalfSize));
+			colOffset = (double) (peakCorrLoc.x - (windowHalfSize - descHalfSize));
 			newRow = currRow + rowOffset;
 			newCol = currCol + colOffset;
 			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
@@ -161,18 +164,18 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			matchTemplate(windowResize, descResize, xcc2, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, Mat());
 			//similar to old offset calculation method
-			// rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
-			// colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
+			// rowOffset = ((double) peakCorrLoc.y)/((double) imScale) - (double) ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
+			// colOffset = ((double) peakCorrLoc.x)/((double) imScale) - (double) ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
 			//new subpixel offset calculation method
-			rowOffset = ((float) peakCorrLoc.y)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
-			colOffset = ((float) peakCorrLoc.x)/((float) imScale) - (float) (windowHalfSize2 - descHalfSize2);
+			rowOffset = ((double) peakCorrLoc.y)/((double) imScale) - (double) (windowHalfSize2 - descHalfSize2);
+			colOffset = ((double) peakCorrLoc.x)/((double) imScale) - (double) (windowHalfSize2 - descHalfSize2);
 			// rowOffset = 0; colOffset = 0;
-			currIm2Row = newRow + rowOffset;
-			currIm2Col = newCol + colOffset;
 
 			if (rowOffset > maxRowOffset) maxRowOffset = rowOffset;
 			if (colOffset > maxColOffset) maxColOffset = colOffset;
 
+			currIm2Row = (float) (newRow + rowOffset);
+			currIm2Col = (float) (newCol + colOffset);
 			im2Data.correspondencesPrev.at<float>(i,0) = currIm2Col;
 			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Row;
 
@@ -184,8 +187,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			}
 			//if they're still valid, add them to the next set of correspondences
 			// else {
-				im2Data.correspondencesNext.at<float>(i,0) = round(currIm2Col);
-				im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Row);
+				// im2Data.correspondencesNext.at<float>(i,0) = round(currIm2Col);
+				// im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Row);
 			// }
 		}
 	}

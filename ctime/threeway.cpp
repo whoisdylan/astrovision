@@ -234,10 +234,14 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			im1Data.correspondencesLR.at<float>(i,1) = currImRRow;
 
 			//check if new point is outside of the tolerance frame
-			if ((currIm2Row < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize))) {
+			if ((currIm2Row < (halfSize - 1)) || (currImRRow < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currImRCol < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currImRRow > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize)) || (currImRCol > (imWidth - halfSize))) {
 				invalidCount = invalidCount + 1;
-				// im2Data.correspondencesPrev.at<float>(i,1) = NAN;
-				// im2Data.correspondencesPrev.at<float>(i,2) = NAN;
+				im1Data.correspondencesNext.at<float>(i,0) = NAN;
+				im1Data.correspondencesNext.at<float>(i,1) = NAN;
+				im1Data.correspondencesLR.at<float>(i,0) = NAN;
+				im1Data.correspondencesLR.at<float>(i,1) = NAN;
+				im2Data.correspondencesPrev.at<float>(i,0) = NAN;
+				im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 			}
 			//if they're still valid, add them to the next set of correspondences
 			// else {

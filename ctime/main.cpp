@@ -8,6 +8,8 @@
 #include "opencv2/imgproc/imgproc.hpp"
 using namespace cv;		using namespace std;
 
+// #define SAVE_CORRESPONDENCES
+
 const int numImages = 40;
 const int numPoints = 300;
 const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
@@ -26,12 +28,12 @@ struct imageData {
 	imageData():correspondencesPrev(numPoints, 2, CV_32FC1),
 				correspondencesNext(numPoints, 2, CV_32FC1){}
 	imageData(const imageData& other) {
-		correspondencesPrev = other.correspondencesPrev;
-		correspondencesNext = other.correspondencesNext;
+		other.correspondencesPrev.copyTo(correspondencesPrev);
+		other.correspondencesNext.copyTo(correspondencesNext);
 	}
 	imageData& operator=(const imageData& other) {
-		correspondencesPrev = other.correspondencesPrev;
-		correspondencesNext = other.correspondencesNext;
+		other.correspondencesPrev.copyTo(correspondencesPrev);
+		other.correspondencesNext.copyTo(correspondencesNext);
 		return *this;
 	}
 	Mat correspondencesPrev;
@@ -96,6 +98,7 @@ int main() {
 	cout << "finished processing images" << endl;
 
 	/* save the correspondence matrix pairs */
+	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
 	char resultNextFile[47];
 	char resultPrevFile[47];
@@ -108,6 +111,7 @@ int main() {
 		writeMat(currIm1Data.correspondencesNext, resultNextFile);
 		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
 	}
+	#endif
 	cout << "all done" << endl;
 }
 

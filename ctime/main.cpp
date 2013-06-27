@@ -13,6 +13,10 @@ const int numPoints = 300;
 const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
 const char imExt[] = ".tiff";
 const int imLocLength = strlen(imDir) + strlen(imExt) + 4;
+/* for hongbin construction images */
+// const char imDir[] = "/Users/dylan/Dropbox/Hongbin/construction_images/L_";
+// const char imExt[] = ".png";
+// const int imLocLength = strlen(imDir) + strlen(imExt) + 1;
 const int descHalfSize = 16;
 const int windowHalfSize = 64;
 const int halfSize = descHalfSize + windowHalfSize;
@@ -21,6 +25,15 @@ struct imageData {
 	// Mat points(numPoints, 2, CV_32FC1);
 	imageData():correspondencesPrev(numPoints, 2, CV_32FC1),
 				correspondencesNext(numPoints, 2, CV_32FC1){}
+	imageData(const imageData& other) {
+		correspondencesPrev = other.correspondencesPrev;
+		correspondencesNext = other.correspondencesNext;
+	}
+	imageData& operator=(const imageData& other) {
+		correspondencesPrev = other.correspondencesPrev;
+		correspondencesNext = other.correspondencesNext;
+		return *this;
+	}
 	Mat correspondencesPrev;
 	Mat correspondencesNext;
 };
@@ -37,16 +50,10 @@ int main() {
 	Mat corners;
 	currIm1Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 	vector<double> strengths;
-	//read in images first, fix this
 	vector<imageData> imageSetLefts;
-	// imageData currIm1Data, currIm2Data;
-	// for (int i = 0; i < numImages; i++) {
-	// 	currIm1Data.image = imread(etc); //fix this
-	// 	imageSetLefts.push_back(currIm1Data);
-	// }
+	imageSetLefts.reserve(40);
 
-
-	printf("setting up first image\n");
+	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];
 	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
@@ -55,59 +62,53 @@ int main() {
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 
-	//plot suppressed corners
-	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
-	// Mat currPlot1 = currIm1.clone();
-	// for (int i = 0; i < currIm1Data.correspondencesNext.rows; i++) {
-	// 	circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
-		// circle(currPlot1,Point(500,500),5,Scalar(255,0,0),3,8,0);
-	// }
-	// resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
-	// imshow("fig",currPlot1);
-	// waitKey(0);
-
 	imageSetLefts.push_back(currIm1Data);
 	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 	imageSetLefts.push_back(currIm2Data);
-	
-	//plot correspondence pair
-	// namedWindow("fig", CV_WINDOW_AUTOSIZE);
-	// namedWindow("fig2", CV_WINDOW_AUTOSIZE);
-	// Mat currPlot1 = currIm1.clone();
-	// Mat currPlot2 = currIm2.clone();
-	// for (int i = 0; i < numPoints; i++) {
-	// 	if (!isnan(currIm1Data.correspondencesNext.at<float>(i,1))) {
-	// 		circle(currPlot1, Point(currIm1Data.correspondencesNext.at<float>(i,1),currIm1Data.correspondencesNext.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
-	// 	}
-	// 	if (!isnan(currIm2Data.correspondencesPrev.at<float>(i,1))) {
-	// 		// printf("currPt: %f\n", currIm2Data.correspondencesPrev.at<float>(i,1));
-	// 		circle(currPlot2, Point(currIm2Data.correspondencesPrev.at<float>(i,1),currIm2Data.correspondencesPrev.at<float>(i,2)), 8, Scalar(255,0,0), 3, 8, 0);
-	// 	}
-	// }
-	// resize(currPlot1,currPlot1,Size(round(.5*currPlot1.cols),round(.5*currPlot1.rows)),.5,.5,INTER_CUBIC);
-	// resize(currPlot2,currPlot2,Size(round(.5*currPlot2.cols),round(.5*currPlot2.rows)),.5,.5,INTER_CUBIC);
-	// imshow("fig",currPlot1);
-	// imshow("fig2",currPlot2);
-	// waitKey(0);
 
-	// writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
-	// writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
-	// cout << currIm2Data.correspondencesPrev.colRange(Range(1,2)) << endl;
+	/* save correspondence pairs */
+	// char resultNextFile[47];
+	// char resultPrevFile[47];
+	// sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", 1, ".txt");
+	// sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", 1, ".txt");
+	// writeMat(currIm1Data.correspondencesNext, resultNextFile);
+	// writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
+	// sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", 2, ".txt");
+	// writeMat(currIm2Data.correspondencesNext, resultNextFile);
 
 	for (int i = 2; i < numImages; i++) {
-		printf("processing images %d and %d\n", i, i+1);
+		cout << "processing images " << i << " and " << i+1 << endl;
 		currIm1Data = currIm2Data;
 		currIm1 = currIm2;
 		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		nccPyramidMatch(currIm1, currIm2, currIm1Data.correspondencesNext, currIm2Data);
 		imageSetLefts.push_back(currIm2Data);
-		// writeMat(currIm1Data.correspondencesNext, "corrNextSub.txt");
-		// writeMat(currIm2Data.correspondencesPrev, "corrPrevSub.txt");
+
+		/* save correspondence pairs */
+		// sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", i, ".txt");
+		// writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
+		// sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", i+1, ".txt");
+		// writeMat(currIm2Data.correspondencesNext, resultNextFile);
 	}
-	printf("finished processing images\n");
+	cout << "finished processing images" << endl;
+
+	/* save the correspondence matrix pairs */
+	cout << "saving correspondence matrices" << endl;
+	char resultNextFile[47];
+	char resultPrevFile[47];
+	for (int i = 1; i < numImages; i++) {
+		// cout << "saving astromat " << i << endl;
+		currIm1Data = imageSetLefts[i-1];
+		currIm2Data = imageSetLefts[i];
+		sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", i, ".txt");
+		sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", i, ".txt");
+		writeMat(currIm1Data.correspondencesNext, resultNextFile);
+		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
+	}
+	cout << "all done" << endl;
 }
 
 void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2Data) {

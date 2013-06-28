@@ -1,4 +1,5 @@
 #include <cstdio>
+
 #include <string>
 #include <cmath>
 #include <iostream>
@@ -25,39 +26,36 @@ const int windowHalfSize = 64;
 const int halfSize = descHalfSize + windowHalfSize;
 
 struct imageData {
-	imageData():correspondencesPrev(numPoints, 2, CV_32FC1),
-				correspondencesNext(numPoints, 2, CV_32FC1),
-				correspondencesLR(numPoints, 2, CV_32FC1){}
+	imageData():correspondencesLL(numPoints),
+				correspondencesLR(numPoints){}
 	imageData(const imageData& other) {
-		other.correspondencesPrev.copyTo(correspondencesPrev);
-		other.correspondencesNext.copyTo(correspondencesNext);
+		other.correspondencesLL.copyTo(correspondencesLL);
 		other.correspondencesLR.copyTo(correspondencesLR);
 	}
 	imageData& operator=(const imageData& other) {
-		other.correspondencesPrev.copyTo(correspondencesPrev);
-		other.correspondencesNext.copyTo(correspondencesNext);
+		other.correspondencesLL.copyTo(correspondencesLL);
 		other.correspondencesLR.copyTo(correspondencesLR);
 		return *this;
 	}
-	Mat correspondencesPrev;
-	Mat correspondencesNext;
-	Mat correspondencesLR;
+	list<vector<Point2f>> correspondencesLL;
+	list<vector<Point2f>> correspondencesLR;
 };
 
 void nccPyramidMatch(const Mat&, const Mat&, const Mat&, imageData&, imageData&);
-void harris(const Mat&, vector<double>&, Mat&);
-void suppress(const Mat&, const vector<double>&, Mat&);
+void harris(const Mat&, vector<double>&, vector<Point2f>&);
+void suppress(const vector<Point2f>&, const vector<double>&, list<vector<Point2f>>);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
 void writeMat(const Mat&, const char *);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
 	Mat currIm1, currIm2, currImR;
-	Mat corners;
-	currIm1Data.correspondencesNext.create(numPoints,2,CV_32FC1);
+	vector<Point2f> corners;
+	// currIm1Data.correspondencesLL;
+	// currIm1Data.correspondencesLR;
 	vector<double> strengths;
 	vector<imageData> imageSetLefts;
-	imageSetLefts.reserve(40);
+	imageSetLefts.reserve(numImages);
 
 	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];
@@ -65,7 +63,7 @@ int main() {
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
 	// printf("%d corners found\n",corners.rows);
-	suppress(corners, strengths, currIm1Data.correspondencesNext);
+	suppress(corners, strengths, currIm1Data.correspondencesLL);
 	// currIm1Data.correspondencesPrev = NULL;
 
 	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
@@ -143,14 +141,14 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
 	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
 	Mat xcc, xcc2, xccR, xccR2;
-	im1Data.correspondencesLR.create(numPoints,2,CV_32FC1);
-	im2Data.correspondencesPrev.create(numPoints,2,CV_32FC1);
-	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
-	Mat im1Pts = im1Data.correspondencesNext;
+	// im2Data.correspondencesLL = im1Data.correspondencesLL;
+	// im2Data.correspondencesLR = im1Data.correspondencesLR;
+	im2Data = im1Data;
 
-	for (int i = 0; i < numPoints; i++) {
-		currCol = (double) round(im1Pts.at<float>(i,0));
-		currRow = (double) round(im1Pts.at<float>(i,1));
+	for (list<vector<Point2f>>::iterator it = im1Data.correspondencesLL.begin(); it != im1Data.correspondencesLL.end(); it++) {
+		
+		currCol = (double) round(im1Data.correspondencesLL[i].back().x);
+		currRow = (double) round(im1Data.correspondencesLL[i].back().y);
 		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
 		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 		currWindowR = imR(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
@@ -175,12 +173,6 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		//threshold and russian granny the ncc result
 		if ((peakCorrVal < threshCorr) || (peakCorrValR < threshCorr) || (peakCorrValR - secondPeakValR < russianGranny) || (peakCorrVal-secondPeakVal < russianGranny)) {
 			invalidCount = invalidCount + 1;
-			im1Data.correspondencesNext.at<float>(i,0) = NAN;
-			im1Data.correspondencesNext.at<float>(i,1) = NAN;
-			im1Data.correspondencesLR.at<float>(i,0) = NAN;
-			im1Data.correspondencesLR.at<float>(i,1) = NAN;
-			im2Data.correspondencesPrev.at<float>(i,0) = NAN;
-			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 		}
 		else {
 			rowOffset = (double) (peakCorrLoc.y - (windowHalfSize - descHalfSize));
@@ -207,6 +199,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 
 			currIm2Row = (float) (newRow + rowOffset);
 			currIm2Col = (float) (newCol + colOffset);
+			im2Data.correspondencesLL[i].push_back(currIm2Col,currIm2Row);
 			im2Data.correspondencesPrev.at<float>(i,0) = currIm2Col;
 			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Row;
 
@@ -290,7 +283,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 }
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates
-void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
+void harris(const Mat& im, vector<double>& strengths, vector<Point2f>& corners) {
 	Mat window = Mat::zeros(3,3,CV_32FC1);
 	Mat maxPts = Mat::zeros(im.size(), CV_64FC1);
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
@@ -322,7 +315,7 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	
 	//extract coordinates of nonzero points (the max pts)
 	// corners = M(countNonZero(maxPts),2,CV_32FC1);
-	corners.create(countNonZero(maxPts),2,CV_32FC1);
+	corners.reserve(countNonZero(maxPts));
 	strengths.reserve(corners.rows);
 	// findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
 	int rowIndex = 0;
@@ -330,8 +323,7 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 		for (int col = 0; col < maxPts.cols; col++) {
 			maxVal = maxPts.at<double>(row,col);
 			if (maxVal != 0) {
-				corners.at<float>(rowIndex,0) = (float) col;
-				corners.at<float>(rowIndex,1) = (float) row;
+				corners.push_back(Point2f(col,row));
 				strengths.push_back(maxVal);
 				rowIndex++;
 			}
@@ -339,7 +331,7 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	}
 }
 
-void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppressedPoints) {
+void suppress(const vector<Point2f>& corners, const vector<double>& strengths, list<vector<Point2f>> suppressedPoints) {
 	float currDist, minDist, xi, xj, yi, yj;
 	vector< pair<float,float> > distances;
 	distances.reserve(corners.rows);
@@ -349,10 +341,10 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 		for (int j = 0; j < corners.rows; j++) {
 			if (i != j) {
 				if (strengths[i] < (strengths[j]*.9)) {
-					xi = corners.at<float>(i,0);
-					yi = corners.at<float>(i,1);
-					xj = corners.at<float>(j,0);
-					yj = corners.at<float>(j,1);
+					xi = corners[i].x;
+					yi = corners[i].y;
+					xj = corners[j].x;
+					yj = corners[j].y;
 					currDist = sqrt(((xj-xi)*(xj-xi)) + ((yj-yi)*(yj-yi)));
 					if (currDist < minDist) minDist = currDist;
 				}
@@ -362,10 +354,9 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 	}
 	sort(distances.begin(), distances.end(), comparePair);
 	for (int i = 0; i < numPoints; i++) {
-		xi = corners.at<float>(distances[i].second,0);
-		yi = corners.at<float>(distances[i].second,1);
-		suppressedPoints.at<float>(i,0) = xi;
-		suppressedPoints.at<float>(i,1) = yi;
+		vector<Point2f> currVec(1);
+		currVec[0] = corners[(distances[i].second)];
+		suppressedPoints.push_back(currVec);
 	}
 }
 

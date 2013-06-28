@@ -52,7 +52,7 @@ int main() {
 	currIm1Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 	vector<double> strengths;
 	vector<imageData> imageSetLefts;
-	imageSetLefts.reserve(40);
+	imageSetLefts.reserve(numImages);
 
 	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];

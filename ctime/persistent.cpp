@@ -69,17 +69,6 @@ int main() {
 	harris(currIm1, strengths, corners);
 	// printf("%d corners found\n",(int) corners.size());
 	suppress(corners, strengths, currIm1Data.correspondencesLL);
-
-	printf("%d suppressed corners\n", (int) currIm1Data.correspondencesLL.size());
-	list< vector<Point2f> >::iterator it = currIm1Data.correspondencesLL.begin();
-	// for (int i = 0; i < 300; i++, it++) {
-	// 	cout << (*it) << endl;
-	// }
-	// for (list< vector<Point2f> >::iterator it = currIm1Data.correspondencesLL.begin(); it != currIm1Data.correspondencesLL.end(); ++it) {
-	// 	cout << (*it) << endl;
-	// }
-	// cout << currIm1Data.correspondencesLL.front() << " it: " << (*it) << endl;
-
 	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	sprintf(imageLocation, "%s%04d%s", imDirR,1,imExt);
@@ -285,7 +274,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		// 	// xDim = halfSize + round(maxColOffset);
 		// 	left = true;
 		// }
-		float distanceThreshold = 5, currX, currY, currX2, currY2, currDist;
+		float distanceThreshold = 0;
+		float currX, currY, currX2, currY2, currDist;
 		int newPoints = 0;
 		vector<double> im2Strengths, imRStrengths;
 		vector<Point2f> im2Corners, imRCorners;
@@ -303,7 +293,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 					currX = (*it).back().x;
 					currY = (*it).back().y;
 					currDist = sqrt(((currX2-currX)*(currX2-currX)) + ((currY2-currY)*(currY2-currY)));
-					if (currDist > distanceThreshold) {
+					if (currDist >= distanceThreshold) {
 						vector<Point2f> tempVector;
 						tempVector.push_back(Point2f(currX2,currY2));
 						im2Data.correspondencesLL.push_back(tempVector);
@@ -336,7 +326,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 					currX = (*it).back().x;
 					currY = (*it).back().y;
 					currDist = sqrt(((currX2-currX)*(currX2-currX)) + ((currY2-currY)*(currY2-currY)));
-					if (currDist > distanceThreshold) {
+					if (currDist >= distanceThreshold) {
 						vector<Point2f> tempVector;
 						tempVector.push_back(Point2f(currX2,currY2));
 						im1Data.correspondencesLR.push_back(tempVector);

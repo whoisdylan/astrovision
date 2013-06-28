@@ -316,7 +316,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		}
 		//otherwise just add any point, caution may add identical points!
 		if (newPoints != invalidCount) {
-			printf("no new features, adding top suppressed points");
+			printf("no new features, adding top suppressed points\n");
 			list< vector<Point2f> >::iterator it2 = im2Suppressed.begin();
 			for (int i = 0; i < (invalidCount-newPoints); i++) {
 				vector<Point2f> tempVector;

@@ -141,14 +141,13 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
 	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
 	Mat xcc, xcc2, xccR, xccR2;
-	// im2Data.correspondencesLL = im1Data.correspondencesLL;
 	// im2Data.correspondencesLR = im1Data.correspondencesLR;
-	im2Data = im1Data;
+	// im2Data.correspondencesLL = im1Data.correspondencesLL;
 
-	for (list<vector<Point2f>>::iterator it = im1Data.correspondencesLL.begin(); it != im1Data.correspondencesLL.end(); it++) {
-		
-		currCol = (double) round(im1Data.correspondencesLL[i].back().x);
-		currRow = (double) round(im1Data.correspondencesLL[i].back().y);
+	//forgive me for I know not what I do...I'm so sorry
+	for (list<vector<Point2f>>::iterator it = im1Data.correspondencesLL.begin(), list<vector<Point2f>>::iterator itLR = im1Data.correspondencesLR.begin(), list<vector<Point2f>>::iterator it2 = im2Data.correspondencesLL.begin(); it != im1Data.correspondencesLL.end(); it++, itLR++, it2++) {
+		currCol = (double) round((*it).back().x);
+		currRow = (double) round((*it).back().y);
 		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
 		currWindow = im2(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 		currWindowR = imR(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
@@ -173,6 +172,11 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		//threshold and russian granny the ncc result
 		if ((peakCorrVal < threshCorr) || (peakCorrValR < threshCorr) || (peakCorrValR - secondPeakValR < russianGranny) || (peakCorrVal-secondPeakVal < russianGranny)) {
 			invalidCount = invalidCount + 1;
+			//put (0,0) onto im1 list to signify track is over
+			(*it).push_back(Point2f(0,0));
+			//remove the track from im2 list and im1LR list
+			// itLR = im1Data.correspondencesLR.erase(itLR);
+			// it2 = im2Data.correspondencesLL.erase(it2);
 		}
 		else {
 			rowOffset = (double) (peakCorrLoc.y - (windowHalfSize - descHalfSize));
@@ -199,9 +203,6 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 
 			currIm2Row = (float) (newRow + rowOffset);
 			currIm2Col = (float) (newCol + colOffset);
-			im2Data.correspondencesLL[i].push_back(currIm2Col,currIm2Row);
-			im2Data.correspondencesPrev.at<float>(i,0) = currIm2Col;
-			im2Data.correspondencesPrev.at<float>(i,1) = currIm2Row;
 
 			//now do it all again for the LR correspondence!
 			rowOffsetR = (double) (peakCorrLocR.y - (windowHalfSize - descHalfSize));
@@ -223,24 +224,24 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 
 			currImRRow = (float) (newRowR + rowOffsetR);
 			currImRCol = (float) (newColR + colOffsetR);
-			im1Data.correspondencesLR.at<float>(i,0) = currImRCol;
-			im1Data.correspondencesLR.at<float>(i,1) = currImRRow;
 
 			//check if new point is outside of the tolerance frame
 			if ((currIm2Row < (halfSize - 1)) || (currImRRow < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currImRCol < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currImRRow > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize)) || (currImRCol > (imWidth - halfSize))) {
 				invalidCount = invalidCount + 1;
-				im1Data.correspondencesNext.at<float>(i,0) = NAN;
-				im1Data.correspondencesNext.at<float>(i,1) = NAN;
-				im1Data.correspondencesLR.at<float>(i,0) = NAN;
-				im1Data.correspondencesLR.at<float>(i,1) = NAN;
-				im2Data.correspondencesPrev.at<float>(i,0) = NAN;
-				im2Data.correspondencesPrev.at<float>(i,1) = NAN;
+				//put (0,0) on im1 LL list to signify end of track
+				(*it).push_back(Point2f(0,0));
+				//remove point form LR and im2 LL list
 			}
-			//if they're still valid, add them to the next set of correspondences
-			// else {
-				// im2Data.correspondencesNext.at<float>(i,0) = round(currIm2Col);
-				// im2Data.correspondencesNext.at<float>(i,1) = round(currIm2Row);
-			// }
+			else {
+				//give im2 list the previous track record
+				(*it2) = (*it);
+				//update the track record
+				(*it2).push_back(Point2f(currIm2Col,currIm2Row));
+				//give LR list the current track record
+				(*itLR) = (*it);
+				//update the track record
+				(*itLR).push_back(Point2f(currImRCol,CurrImRRow));
+			}
 		}
 	}
 
@@ -264,20 +265,77 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		// 	// xDim = halfSize + round(maxColOffset);
 		// 	left = true;
 		// }
-		vector<double> im2Strengths;
-		Mat im2Corners;
-		// Mat im2Suppressed(numPoints,2,CV_32FC1);
-		harris(im2, im2Strengths, im2Corners);
-
-		//otherwise look for points not in original image
-		if (im2Corners.rows < invalidCount) {
-			printf("no new features, widening search region");
-			// harris(im2, im2Strengths, im2Corners);
-			// suppress(im2Corners, im2Strengths, im2Suppressed);
-			//see if each point exists in old list of points, only add invalidCount number new points
+		float distanceThreshold = 5, currX, currY, currX2, currY2, currDist;
+		int newPoints = 0;
+		vector<double> im2Strengths, imRStrengths;
+		Mat im2Corners, imRCorners;
+		vector<Point2f> im2Corners, imRCorners;
+		list<vector<Point2f> im2Suppressed, imRSuppressed;
+		suppress(im2Corners, im2Strengths, im2Suppressed);
+		suppress(imRCorners, imRStrengths, imRSuppressed);
+		//find new points for im2
+		for (list<vector<Point2f>>::iterator it2 = im2Suppressed.begin(); it2 != im2Suppressed.end(); it2++) {
+			if (newPoints < invalidCount) {
+				for (list<vector<Point2f>>::iterator it = im2Data.correspondencesLL.begin(); it != im2Data.correspondencesLL.end(); it++) {
+					currX2 = (*it2).x;
+					currY2 = (*it2).y;
+					currX = (*it).x;
+					currY = (*it).y;
+					currDist = sqrt(((currX2-currX)*(currX2-currX)) + ((currY2-currY)*(currY2-currY)));
+					if (currDist > distanceThreshold) {
+						vector<Point2f> tempVector;
+						tempVector.push_back(Point2f(currX2,currY2));
+						im2Data.corresponencesLL.push_back(tempVector);
+						newPoints++;
+						break;
+					}
+				}
+			}
+			else break;
 		}
-		else {
-			suppress(im2Corners, im2Strengths, im2Data.correspondencesNext);
+		//otherwise just add any point, caution may add identical points!
+		if (newPoints != invalidCount) {
+			printf("no new features, adding top suppressed points");
+			list<vector<Point2f>>::iterator it2 = im2Suppressed.begin();
+			for (int i = 0; i < (invalidCount-newPoints); i++) {
+				vector<Point2f> tempVector;
+				tempVector.push_back(*it2);
+				im2Data.correspondencesLL.push_back(tempVector);
+				it2++;
+			}
+		}
+
+		//now do it for the right image!
+		newPoints = 0;
+		for (list<vector<Point2f>>::iterator it2 = imRSuppressed.begin(); it2 != imRSuppressed.end(); it2++) {
+			if (newPoints < invalidCount) {
+				for (list<vector<Point2f>>::iterator it = im1Data.correspondencesLR.begin(); it != im1Data.correspondencesLR.end(); it++) {
+					currX2 = (*it2).x;
+					currY2 = (*it2).y;
+					currX = (*it).x;
+					currY = (*it).y;
+					currDist = sqrt(((currX2-currX)*(currX2-currX)) + ((currY2-currY)*(currY2-currY)));
+					if (currDist > distanceThreshold) {
+						vector<Point2f> tempVector;
+						tempVector.push_back(Point2f(currX2,currY2));
+						im1Data.corresponencesLR.push_back(tempVector);
+						newPoints++;
+						break;
+					}
+				}
+			}
+			else break;
+		}
+		//otherwise just add any point, caution may add identical points!
+		if (newPoints != invalidCount) {
+			printf("no new features, adding top suppressed points");
+			list<vector<Point2f>>::iterator it2 = imRSuppressed.begin();
+			for (int i = 0; i < (invalidCount-newPoints); i++) {
+				vector<Point2f> tempVector;
+				tempVector.push_back(*it2);
+				imRData.correspondencesLR.push_back(tempVector);
+				it2++;
+			}
 		}
 	}
 }
@@ -354,8 +412,8 @@ void suppress(const vector<Point2f>& corners, const vector<double>& strengths, l
 	}
 	sort(distances.begin(), distances.end(), comparePair);
 	for (int i = 0; i < numPoints; i++) {
-		vector<Point2f> currVec(1);
-		currVec[0] = corners[(distances[i].second)];
+		vector<Point2f> tempVector;
+		tempVector.push_back(corners[(distances[i].second)]);
 		suppressedPoints.push_back(currVec);
 	}
 }

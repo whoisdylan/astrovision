@@ -454,7 +454,7 @@ void writeList(const list< vector<Point2f> >& currList, const char *filename) {
 		for (list< vector<Point2f> >::const_iterator it = currList.begin(); it != currList.end(); it++) {
 			vector<Point2f> currVector = *it;
 			for (unsigned int i = 0; i < currVector.size(); i++) {
-				fout << "(" << (float) currVector[i].x << " , " << (float) currVector[i].y << ")" << "\t";
+				fout << (float) currVector[i].x << ", " << (float) currVector[i].y << "\t";
 			}
 			fout << endl;
 		}

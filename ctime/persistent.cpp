@@ -46,11 +46,13 @@ struct imageData {
 	list< vector<Point2f> > correspondencesLR;
 };
 
+//prototypes
 void nccPyramidMatch(const Mat&, const Mat&, const Mat&, imageData&, imageData&);
 void harris(const Mat&, vector<double>&, vector<Point2f>&);
 void suppress(const vector<Point2f>&, const vector<double>&, list< vector<Point2f> >&);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
 void writeMat(const Mat&, const char *);
+void writeList(const list< vector<Point2f> >&, const char *);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
@@ -112,16 +114,15 @@ int main() {
 	/* save the correspondence matrix pairs */
 	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
-	char resultNextFile[47];
-	char resultPrevFile[47];
-	for (int i = 1; i < numImages; i++) {
+	char resultNextFile[100];
+	char resultPrevFile[100];
+	for (int i = 0; i < numImages; i++) {
 		// cout << "saving astromat " << i << endl;
-		currIm1Data = imageSetLefts[i-1];
-		currIm2Data = imageSetLefts[i];
-		sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", i, ".txt");
-		sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", i, ".txt");
-		writeMat(currIm1Data.correspondencesNext, resultNextFile);
-		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
+		currIm1Data = imageSetLefts[i];
+		sprintf(corrLLFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrLL_", i, ".txt");
+		sprintf(corrLRFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrLR_", i, ".txt");
+		writeList(currIm1Data.correspondencesLL, corrLLFile);
+		writeList(currIm1Data.correspondencesLR, corrLRFile);
 	}
 	#endif
 	cout << "all done" << endl;
@@ -437,6 +438,22 @@ void suppress(const vector<Point2f>& corners, const vector<double>& strengths, l
 
 bool comparePair (const pair<float, float>& pair1, const pair<float, float>& pair2) {
 	return pair1.first > pair2.first;
+}
+
+void writeList(const list< vector<Point2f> >& currList, const char *filename) {
+	ofstream fout(filename);
+	if (!fout) {
+		cout << "error, file not opened" << endl;
+	}
+	else {
+		for (list< vector<Point2f> >::const_iterator it = currList.begin(); it != currList.end(); it++) {
+			vector<Point2f> currVector = *it;
+			for (unsigned int i = 0; i < currVector.size(); i++) {
+				fout << "(" << (float) currVector[i].x << " , " << (float) currVector[i].y << ")";
+			}
+			fout << endl;
+		}
+	}
 }
 
 void writeMat(const Mat& matrix, const char *filename) {

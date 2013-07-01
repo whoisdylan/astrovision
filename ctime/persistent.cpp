@@ -1,5 +1,4 @@
 #include <cstdio>
-
 #include <string>
 #include <list>
 #include <cmath>
@@ -10,13 +9,16 @@
 #include "opencv2/imgproc/imgproc.hpp"
 using namespace cv;		using namespace std;
 
-// #define SAVE_CORRESPONDENCES
+#define SAVE_CORRESPONDENCES
 
-const int numImages = 20;
+const int numImages = 69;
 const int numPoints = 300;
-const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
-const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
-const char imExt[] = ".tiff";
+// const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
+// const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
+// const char imExt[] = ".tiff";
+const char imDir[]  = "/Users/dylan/Dropbox/Hongbin/roof_images/rectified/L_";
+const char imDirR[] = "/Users/dylan/Dropbox/Hongbin/roof_images/rectified/R_";
+const char imExt[] = ".png";
 const int imLocLength = strlen(imDirR) + strlen(imExt) + 4;
 /* for hongbin construction images */
 // const char imDir[] = "/Users/dylan/Dropbox/Hongbin/construction_images/L_";
@@ -66,14 +68,14 @@ int main() {
 
 	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];
-	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDir,200,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
 	// printf("%d corners found\n",(int) corners.size());
 	suppress(corners, strengths, currIm1Data.correspondencesLL);
-	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDir,201,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-	sprintf(imageLocation, "%s%04d%s", imDirR,1,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDirR,201,imExt);
 	currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 	imageSetLefts.push_back(currIm1Data);
@@ -94,9 +96,9 @@ int main() {
 		currIm1 = currIm2;
 		currIm2Data.correspondencesLL.clear();
 		currIm2Data.correspondencesLR.clear();
-		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
+		sprintf(imageLocation, "%s%03d%s", imDir,i+200,imExt);
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-		sprintf(imageLocation, "%s%04d%s", imDirR,i-1,imExt);
+		sprintf(imageLocation, "%s%03d%s", imDirR,i-1+200,imExt);
 		currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 		imageSetLefts.push_back(currIm1Data);
@@ -114,13 +116,13 @@ int main() {
 	/* save the correspondence matrix pairs */
 	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
-	char resultNextFile[100];
-	char resultPrevFile[100];
+	char corrLLFile[100];
+	char corrLRFile[100];
 	for (int i = 0; i < numImages; i++) {
 		// cout << "saving astromat " << i << endl;
 		currIm1Data = imageSetLefts[i];
-		sprintf(corrLLFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrLL_", i, ".txt");
-		sprintf(corrLRFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrLR_", i, ".txt");
+		sprintf(corrLLFile, "%s%03d%s", "/Users/dylan/Dropbox/astromats/corrLL_", i+200, ".txt");
+		sprintf(corrLRFile, "%s%03d%s", "/Users/dylan/Dropbox/astromats/corrLR_", i+200, ".txt");
 		writeList(currIm1Data.correspondencesLL, corrLLFile);
 		writeList(currIm1Data.correspondencesLR, corrLRFile);
 	}
@@ -288,7 +290,9 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		vector<Point2f> im2Corners, imRCorners;
 		list< vector<Point2f> > im2Suppressed, imRSuppressed;
 		harris(im2, im2Strengths, im2Corners);
+		// printf("%d corners found\n",(int) im2Corners.size());
 		harris(imR, imRStrengths, imRCorners);
+		// printf("%d corners found\n",(int) imRCorners.size());
 		suppress(im2Corners, im2Strengths, im2Suppressed);
 		suppress(imRCorners, imRStrengths, imRSuppressed);
 		//find new points for im2
@@ -365,6 +369,7 @@ void harris(const Mat& im, vector<double>& strengths, vector<Point2f>& corners) 
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
 	Point currMax;
 	double maxVal;
+	double harrisThreshold = .001;
 
 	cornerHarris(im, harrisImage, 3, 3, 0.04, BORDER_DEFAULT); //not sure about the k parameter
 
@@ -378,12 +383,12 @@ void harris(const Mat& im, vector<double>& strengths, vector<Point2f>& corners) 
 	harrisImage.colRange(Range(0,halfSize)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
 	harrisImage.colRange(Range(harrisWidth-halfSize,harrisWidth)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
 
-	//non-max suppress
-	for (int row = 0; row < harrisHeight-suppressSize+1; row++) {
-		for (int col = 0; col < harrisWidth-suppressSize+1; col++) {
+	//non-max suppress sliding method
+	for (int row = halfSize; row < harrisHeight-halfSize-suppressSize; row++) {
+		for (int col = halfSize; col < harrisWidth-halfSize-suppressSize; col++) {
 			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
 			minMaxLoc(window, 0, &maxVal, 0, &currMax, Mat());
-			if (maxVal > .00001) {
+			if (maxVal > harrisThreshold) {
 				maxPts.at<double>(((double) currMax.y)+row,((double) currMax.x)+col) = maxVal;
 			}
 		}
@@ -449,7 +454,7 @@ void writeList(const list< vector<Point2f> >& currList, const char *filename) {
 		for (list< vector<Point2f> >::const_iterator it = currList.begin(); it != currList.end(); it++) {
 			vector<Point2f> currVector = *it;
 			for (unsigned int i = 0; i < currVector.size(); i++) {
-				fout << "(" << (float) currVector[i].x << " , " << (float) currVector[i].y << ")";
+				fout << "(" << (float) currVector[i].x << " , " << (float) currVector[i].y << ")" << "\t";
 			}
 			fout << endl;
 		}

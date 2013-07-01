@@ -162,8 +162,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, Mat& im1Pts, imageData& im2
 			newCol = currCol + colOffset;
 			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
 			newWindow = im2(Range(newRow-windowHalfSize2,newRow+windowHalfSize2),Range(newCol-windowHalfSize2,newCol+windowHalfSize2));
-			resize(newDesc, descResize, Size(imScale*descHalfSize2,imScale*descHalfSize2), 0, 0, INTER_CUBIC);
-			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
+			resize(newDesc, descResize, Size(imScale*2*descHalfSize2,imScale*2*descHalfSize2), 0, 0, INTER_CUBIC);
+			resize(newWindow, windowResize, Size(imScale*2*windowHalfSize2,imScale*2*windowHalfSize2), 0, 0, INTER_CUBIC);
 
 			matchTemplate(windowResize, descResize, xcc2, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, Mat());

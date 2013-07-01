@@ -90,6 +90,8 @@ int main() {
 		cout << "processing images " << i << " and " << i+1 << endl;
 		currIm1Data = currIm2Data;
 		currIm1 = currIm2;
+		currIm2Data.correspondencesLL.clear();
+		currIm2Data.correspondencesLR.clear();
 		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		sprintf(imageLocation, "%s%04d%s", imDirR,i-1,imExt);
@@ -151,7 +153,9 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 
 	// list< vector<Point2f> >::iterator itLR = im1Data.correspondencesLR.begin();
 	// list< vector<Point2f> >::iterator it2 = im2Data.correspondencesLL.begin();
+	int loopIterations = 0;
 	for (list< vector<Point2f> >::iterator it = im1Data.correspondencesLL.begin(); it != im1Data.correspondencesLL.end(); it++/* , itLR++, it2++ */) {
+		loopIterations++;
 		currCol = (double) round((*it).back().x);
 		currRow = (double) round((*it).back().y);
 		currDesc = im1(Range(currRow-descHalfSize,currRow+descHalfSize),Range(currCol-descHalfSize,currCol+descHalfSize));
@@ -159,8 +163,6 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		currWindowR = imR(Range(currRow-windowHalfSize,currRow+windowHalfSize),Range(currCol-windowHalfSize,currCol+windowHalfSize));
 
 		//compute NCC
-		// cout << "winRows: " << currWindow.rows << " winCols: " << currWindow.cols << endl;
-		// cout << "descRows: " << currDesc.rows << " descCols: " << currDesc.cols << endl;
 		matchTemplate(currWindow, currDesc, xcc, CV_TM_CCORR_NORMED);
 		minMaxLoc(xcc, 0, &peakCorrVal, 0, &peakCorrLoc, Mat());
 		xcc.at<float>((float) peakCorrLoc.y,(float) peakCorrLoc.x) = -2147483648;
@@ -169,8 +171,6 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		secondPeakVal = 0;
 
 		//compute LR NCC
-		// cout << "winRows: " << currWindow.rows << " winCols: " << currWindow.cols << endl;
-		// cout << "descRows: " << currDesc.rows << " descCols: " << currDesc.cols << endl;
 		matchTemplate(currWindowR, currDesc, xccR, CV_TM_CCORR_NORMED);
 		minMaxLoc(xccR, 0, &peakCorrValR, 0, &peakCorrLocR, Mat());
 		xccR.at<float>((float) peakCorrLocR.y,(float) peakCorrLocR.x) = -2147483648;
@@ -195,11 +195,9 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			newCol = currCol + colOffset;
 			newDesc = im1(Range(currRow-descHalfSize2,currRow+descHalfSize2),Range(currCol-descHalfSize2,currCol+descHalfSize));
 			newWindow = im2(Range(newRow-windowHalfSize2,newRow+windowHalfSize2),Range(newCol-windowHalfSize2,newCol+windowHalfSize2));
-			resize(newDesc, descResize, Size(imScale*descHalfSize2,imScale*descHalfSize2), 0, 0, INTER_CUBIC);
-			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
+			resize(newDesc, descResize, Size(imScale*2*descHalfSize2,imScale*2*descHalfSize2), 0, 0, INTER_CUBIC);
+			resize(newWindow, windowResize, Size(imScale*2*windowHalfSize2,imScale*2*windowHalfSize2), 0, 0, INTER_CUBIC);
 
-			// cout << "winRows: " << windowResize.rows << " winCols: " << windowResize.cols << endl;
-			// cout << "descRows: " << descResize.rows << " descCols: " << descResize.cols << endl;
 			matchTemplate(windowResize, descResize, xcc2, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2, 0, 0, 0, &peakCorrLoc, Mat());
 			//similar to old offset calculation method
@@ -224,9 +222,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			newWindow = imR(Range(newRowR-windowHalfSize2,newRowR+windowHalfSize2),Range(newColR-windowHalfSize2,newColR+windowHalfSize2));
 			resize(newWindow, windowResizeR, Size(imScale*2*windowHalfSize2,imScale*2*windowHalfSize2), 0, 0, INTER_CUBIC);
 
-			// cout << "winRows: " << windowResize.rows << " winCols: " << windowResize.cols << endl;
-			// cout << "descRows: " << descResize.rows << " descCols: " << descResize.cols << endl;
-			matchTemplate(windowResize, descResize, xcc2R, CV_TM_CCORR_NORMED);
+			matchTemplate(windowResizeR, descResize, xcc2R, CV_TM_CCORR_NORMED);
 			minMaxLoc(xcc2R, 0, 0, 0, &peakCorrLocR, Mat());
 			//similar to old offset calculation method
 			// rowOffset = ((double) peakCorrLoc.y)/((double) imScale) - (double) ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
@@ -262,6 +258,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			}
 		}
 	}
+	// cout << "loop iterations: " << loopIterations << endl;
 
 	//detect new points if necessary
 	if (invalidCount != 0) {

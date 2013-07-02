@@ -15,7 +15,7 @@ astrovision: objects/$(OBJS)
 objects/astrovision.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp -o objects/astrovision.o
 
-three: objects/$(POBJS)
+three: objects/$(TOBJS)
 	$(CC) $(CFLAGS) -o three objects/$(TOBJS) $(LIBS)
 
 bvision: objects/$(POBJS)

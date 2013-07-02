@@ -48,15 +48,15 @@ struct imageData {
 };
 
 void nccPyramidMatch(const Mat&, const Mat&, const Mat&, imageData&, imageData&);
-void harris(const Mat&, vector<double>&, Mat&);
-void suppress(const Mat&, const vector<double>&, Mat&);
+void harris(const Mat&, vector<double>&, vector<Point2f>&);
+void suppress(const vector<Point2f>&, const vector<double>&, Mat&);
 bool comparePair(const pair<float, float>&, const pair<float, float>&);
 void writeMat(const Mat&, const char *);
 
 int main() {
 	imageData currIm1Data, currIm2Data;
 	Mat currIm1, currIm2, currImR;
-	Mat corners;
+	vector<Point2f> corners;
 	currIm1Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 	vector<double> strengths;
 	vector<imageData> imageSetLefts;
@@ -67,7 +67,7 @@ int main() {
 	sprintf(imageLocation, "%s%03d%s", imDir,200,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
-	printf("%d corners found\n",corners.rows);
+	printf("%d corners found\n",(int)corners.size());
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 
@@ -279,12 +279,12 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		// 	left = true;
 		// }
 		vector<double> im2Strengths;
-		Mat im2Corners;
+		vector<Point2f> im2Corners;
 		// Mat im2Suppressed(numPoints,2,CV_32FC1);
 		harris(im2, im2Strengths, im2Corners);
 
 		//otherwise look for points not in original image
-		if (im2Corners.rows < invalidCount) {
+		if (im2Corners.size() < invalidCount) {
 			printf("no new features, widening search region");
 			// harris(im2, im2Strengths, im2Corners);
 			// suppress(im2Corners, im2Strengths, im2Suppressed);
@@ -297,70 +297,73 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 }
 
 //returns N-by-2 matrix of (x,y) harris corner coordinates
-void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
+void harris(const Mat& im, vector<double>& strengths, vector<Point2f>& corners) {
 	Mat window = Mat::zeros(3,3,CV_32FC1);
 	Mat maxPts = Mat::zeros(im.size(), CV_64FC1);
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
 	Point currMax;
 	double maxVal;
-	double cornerThreshold = .002;
+	double cornerThreshold = .0003;
 
 	cornerHarris(im, harrisImage, 3, 3, 0.04, BORDER_DEFAULT); //not sure about the k parameter
 
 	int harrisWidth = harrisImage.cols;
 	int harrisHeight = harrisImage.rows;
-	int suppressSize = 3;
+	// int suppressSize = 3;
 
 	//remove points too close to image border
-	harrisImage.rowRange(Range(0,halfSize)) = Mat::zeros(halfSize,harrisWidth,CV_32FC1);
-	harrisImage.rowRange(Range(harrisHeight-halfSize,harrisHeight)) = Mat::zeros(halfSize,harrisWidth,CV_32FC1);
-	harrisImage.colRange(Range(0,halfSize)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
-	harrisImage.colRange(Range(harrisWidth-halfSize,harrisWidth)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
+	// harrisImage.rowRange(Range(0,halfSize)) = Mat::zeros(halfSize,harrisWidth,CV_32FC1);
+	// harrisImage.rowRange(Range(harrisHeight-halfSize,harrisHeight)) = Mat::zeros(halfSize,harrisWidth,CV_32FC1);
+	// harrisImage.colRange(Range(0,halfSize)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
+	// harrisImage.colRange(Range(harrisWidth-halfSize,harrisWidth)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
 
 	//non-max suppress
-	for (int row = halfSize; row < harrisHeight-halfSize-suppressSize; row++) {
-		for (int col = halfSize; col < harrisWidth-halfSize-suppressSize; col++) {
-			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
+	for (int row = halfSize; row < harrisHeight-halfSize; row++) {
+		for (int col = halfSize; col < harrisWidth-halfSize; col++) {
+			// window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
+			//using centered window
+			window = harrisImage(Range(row-1,row+2),Range(col-1,col+2));
 			minMaxLoc(window, 0, &maxVal, 0, &currMax, Mat());
-			if (maxVal > cornerThreshold) {
-				maxPts.at<double>(((double) currMax.y)+row,((double) currMax.x)+col) = maxVal;
+			if ((currMax+Point(col,row) == Point(col+1,row+1)) && (maxVal > cornerThreshold)) {
+				corners.push_back(Point2f((float) col,(float) row));
+				strengths.push_back(maxVal);
 			}
 		}
 	}
 	
 	//extract coordinates of nonzero points (the max pts)
 	// corners = M(countNonZero(maxPts),2,CV_32FC1);
-	corners.create(countNonZero(maxPts),2,CV_32FC1);
-	strengths.reserve(corners.rows);
-	// findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
-	int rowIndex = 0;
-	for (int row = 0; row < maxPts.rows; row++) {
-		for (int col = 0; col < maxPts.cols; col++) {
-			maxVal = maxPts.at<double>(row,col);
-			if (maxVal != 0) {
-				corners.at<float>(rowIndex,0) = (float) col;
-				corners.at<float>(rowIndex,1) = (float) row;
-				strengths.push_back(maxVal);
-				rowIndex++;
-			}
-		}
-	}
+	// corners.create(countNonZero(maxPts),2,CV_32FC1);
+	// strengths.reserve(corners.rows);
+	// // findNonZero(maxPts,corners); /* finds all nonzero elements, but only in opencv>=2.4.4 */
+	// int rowIndex = 0;
+	// for (int row = 0; row < maxPts.rows; row++) {
+	// 	for (int col = 0; col < maxPts.cols; col++) {
+	// 		maxVal = maxPts.at<double>(row,col);
+	// 		if (maxVal != 0) {
+	// 			corners.at<float>(rowIndex,0) = (float) col;
+	// 			corners.at<float>(rowIndex,1) = (float) row;
+	// 			strengths.push_back(maxVal);
+	// 			rowIndex++;
+	// 		}
+	// 	}
+	// }
 }
 
-void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppressedPoints) {
+void suppress(const vector<Point2f>& corners, const vector<double>& strengths, Mat& suppressedPoints) {
 	float currDist, minDist, xi, xj, yi, yj;
 	vector< pair<float,float> > distances;
-	distances.reserve(corners.rows);
+	distances.reserve(corners.size());
 	
-	for (int i = 0; i < corners.rows; i++) {
+	for (int i = 0; i < (int) corners.size(); i++) {
 		minDist = INFINITY;
-		for (int j = 0; j < corners.rows; j++) {
+		for (int j = 0; j < (int) corners.size(); j++) {
 			if (i != j) {
 				if (strengths[i] < (strengths[j]*.9)) {
-					xi = corners.at<float>(i,0);
-					yi = corners.at<float>(i,1);
-					xj = corners.at<float>(j,0);
-					yj = corners.at<float>(j,1);
+					xi = corners[i].x;
+					yi = corners[i].y;
+					xj = corners[j].x;
+					yj = corners[j].y;
 					currDist = sqrt(((xj-xi)*(xj-xi)) + ((yj-yi)*(yj-yi)));
 					if (currDist < minDist) minDist = currDist;
 				}
@@ -370,8 +373,8 @@ void suppress(const Mat& corners, const vector<double>& strengths, Mat& suppress
 	}
 	sort(distances.begin(), distances.end(), comparePair);
 	for (int i = 0; i < numPoints; i++) {
-		xi = corners.at<float>(distances[i].second,0);
-		yi = corners.at<float>(distances[i].second,1);
+		xi = corners[distances[i].second].x;
+		yi = corners[distances[i].second].y;
 		suppressedPoints.at<float>(i,0) = xi;
 		suppressedPoints.at<float>(i,1) = yi;
 	}

@@ -8,13 +8,16 @@
 #include "opencv2/imgproc/imgproc.hpp"
 using namespace cv;		using namespace std;
 
-// #define SAVE_CORRESPONDENCES
+#define SAVE_CORRESPONDENCES
 
-const int numImages = 40;
+const int numImages = 100;
 const int numPoints = 300;
-const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
-const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
-const char imExt[] = ".tiff";
+// const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
+// const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
+// const char imExt[] = ".tiff";
+const char imDir[] =  "/Users/dylan/Desktop/parking_lot/left_raw_";
+const char imDirR[] = "/Users/dylan/Desktop/parking_lot/right_raw_";
+const char imExt[] = ".png";
 const int imLocLength = strlen(imDirR) + strlen(imExt) + 4;
 /* for hongbin construction images */
 // const char imDir[] = "/Users/dylan/Dropbox/Hongbin/construction_images/L_";
@@ -61,16 +64,16 @@ int main() {
 
 	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];
-	sprintf(imageLocation, "%s%04d%s", imDir,0,imExt);
+	sprintf(imageLocation, "%s%04d%s", imDir,200,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
-	// printf("%d corners found\n",corners.rows);
+	printf("%d corners found\n",corners.rows);
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 
-	sprintf(imageLocation, "%s%04d%s", imDir,1,imExt);
+	sprintf(imageLocation, "%s%04d%s", imDir,201,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-	sprintf(imageLocation, "%s%04d%s", imDirR,1,imExt);
+	sprintf(imageLocation, "%s%04d%s", imDirR,201,imExt);
 	currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 	imageSetLefts.push_back(currIm1Data);
@@ -89,9 +92,9 @@ int main() {
 		cout << "processing images " << i << " and " << i+1 << endl;
 		currIm1Data = currIm2Data;
 		currIm1 = currIm2;
-		sprintf(imageLocation, "%s%04d%s", imDir,i,imExt);
+		sprintf(imageLocation, "%s%04d%s", imDir,i+200,imExt);
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-		sprintf(imageLocation, "%s%04d%s", imDirR,i-1,imExt);
+		sprintf(imageLocation, "%s%04d%s", imDirR,i-1+200,imExt);
 		currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 		imageSetLefts.push_back(currIm1Data);
@@ -110,14 +113,17 @@ int main() {
 	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
 	char resultNextFile[47];
+	char resultRightFile[47];
 	char resultPrevFile[47];
 	for (int i = 1; i < numImages; i++) {
 		// cout << "saving astromat " << i << endl;
 		currIm1Data = imageSetLefts[i-1];
 		currIm2Data = imageSetLefts[i];
-		sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", i, ".txt");
-		sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", i, ".txt");
+		sprintf(resultNextFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrNext", i+199, ".txt");
+		sprintf(resultRightFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrRight", i+199, ".txt");
+		sprintf(resultPrevFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrPrev", i+200, ".txt");
 		writeMat(currIm1Data.correspondencesNext, resultNextFile);
+		writeMat(currIm1Data.correspondencesLR, resultRightFile);
 		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
 	}
 	#endif
@@ -131,7 +137,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 	// const unsigned int xDim, yDim;
 	// const bool top, left;
 	float invalidCount = 0, maxRowOffset = 0, maxColOffset = 0;
-	float currIm2Row, currIm2Col;
+	float currIm2Row, currIm2Col, currImRRow, currImRCol;
 	double rowOffset, colOffset, newRow, newCol, currRow, currCol;
 	double rowOffsetR, colOffsetR, newRowR, newColR;
 	double peakCorrVal, secondPeakVal, peakCorrValR, secondPeakValR;
@@ -140,6 +146,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 	Mat newDesc(descHalfSize2+descHalfSize2,descHalfSize2+descHalfSize2,CV_8UC1);
 	Mat descResize(descHalfSize+descHalfSize,descHalfSize+descHalfSize,CV_8UC1);
 	Mat currWindow(windowHalfSize+windowHalfSize,windowHalfSize+windowHalfSize,CV_8UC1);
+	Mat currWindowR(windowHalfSize+windowHalfSize,windowHalfSize+windowHalfSize,CV_8UC1);
 	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
 	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
 	Mat xcc, xcc2, xccR, xccR2;
@@ -218,8 +225,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			newWindow = imR(Range(newRowR-windowHalfSize2,newRowR+windowHalfSize2),Range(newColR-windowHalfSize2,newColR+windowHalfSize2));
 			resize(newWindow, windowResize, Size(imScale*windowHalfSize2,imScale*windowHalfSize2), 0, 0, INTER_CUBIC);
 
-			matchTemplate(windowResize, descResize, xcc2R, CV_TM_CCORR_NORMED);
-			minMaxLoc(xcc2R, 0, 0, 0, &peakCorrLocR, Mat());
+			matchTemplate(windowResize, descResize, xccR2, CV_TM_CCORR_NORMED);
+			minMaxLoc(xccR2, 0, 0, 0, &peakCorrLocR, Mat());
 			//similar to old offset calculation method
 			// rowOffset = ((double) peakCorrLoc.y)/((double) imScale) - (double) ((newRow - windowHalfSize2) - (currRow - descHalfSize2));
 			// colOffset = ((double) peakCorrLoc.x)/((double) imScale) - (double) ((newCol - windowHalfSize2) - (currCol - descHalfSize2));
@@ -296,6 +303,7 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	Mat harrisImage = Mat::zeros(im.size(), CV_32FC1);
 	Point currMax;
 	double maxVal;
+	double cornerThreshold = .002;
 
 	cornerHarris(im, harrisImage, 3, 3, 0.04, BORDER_DEFAULT); //not sure about the k parameter
 
@@ -310,11 +318,11 @@ void harris(const Mat& im, vector<double>& strengths, Mat& corners) {
 	harrisImage.colRange(Range(harrisWidth-halfSize,harrisWidth)) = Mat::zeros(harrisHeight,halfSize,CV_32FC1);
 
 	//non-max suppress
-	for (int row = 0; row < harrisHeight-suppressSize+1; row++) {
-		for (int col = 0; col < harrisWidth-suppressSize+1; col++) {
+	for (int row = halfSize; row < harrisHeight-halfSize-suppressSize; row++) {
+		for (int col = halfSize; col < harrisWidth-halfSize-suppressSize; col++) {
 			window = harrisImage(Range(row,row+suppressSize),Range(col,col+suppressSize));
 			minMaxLoc(window, 0, &maxVal, 0, &currMax, Mat());
-			if (maxVal > .00001) {
+			if (maxVal > cornerThreshold) {
 				maxPts.at<double>(((double) currMax.y)+row,((double) currMax.x)+col) = maxVal;
 			}
 		}

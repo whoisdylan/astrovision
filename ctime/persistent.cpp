@@ -283,7 +283,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 		// 	// xDim = halfSize + round(maxColOffset);
 		// 	left = true;
 		// }
-		float distanceThreshold = 0;
+		float distanceThreshold = 5;
 		float currX, currY, currX2, currY2, currDist;
 		int newPoints = 0;
 		vector<double> im2Strengths, imRStrengths;

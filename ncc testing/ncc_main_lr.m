@@ -57,7 +57,7 @@ for i=1:numImages-1
     imshow(catImage)
     hold on;
     plot(correspondences(:,1,i),correspondences(:,2,i),'r.');
-    plot(correspondences(:,3,i)+imWidth,correspondences(:,4,i),'r.');
+    plot(correspondences(:,3,i)+imWidth,correspondences(:,4,i),'b.');
     hold off;
     print(fig,'-dpng','-r0', ['C:/Users/render/Desktop/dylan/ncc testing/results_dual/' int2str(i) '.png']);
 end

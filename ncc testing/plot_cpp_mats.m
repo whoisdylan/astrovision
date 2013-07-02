@@ -1,10 +1,10 @@
-numImages = 100;
+numImages = 69;
 numPoints = 300;
 %import images from directory direc
-direc = 'C:\Users\render\Desktop\dylan\parking_lot_images\';
+direc = 'C:\Users\render\Downloads\rectified\';
 direcC = 'C:\Users\render\Downloads\astromats_three\';
-DL = dir([direc 'left*.png']);
-DR = dir([direc 'right*.png']);
+DL = dir([direc 'L_*.png']);
+DR = dir([direc 'R_*.png']);
 DCP = dir([direcC 'corrPrev*.txt']);
 DCR = dir([direcC 'corrRight*.txt']);
 DCN = dir([direcC 'corrNext*.txt']);
@@ -20,8 +20,8 @@ corrPrev = zeros(numPoints,2,numImages-1);
 corrNext = zeros(numPoints,2,numImages-1);
 corrRight = zeros(numPoints,2,numImages-1);
 for i=1:numImages;
-    leftImages(:,:,i) = imread([direc DL(i).name]);
-    rightImages(:,:,i) = imread([direc DR(i).name]);
+    leftImages(:,:,i) = rgb2gray(imread([direc DL(i).name]));
+    rightImages(:,:,i) = rgb2gray(imread([direc DR(i).name]));
     if (i < numImages)
         corrPrev(:,:,i) = load([direcC DCP(i).name]);
         corrNext(:,:,i) = load([direcC DCN(i).name]);

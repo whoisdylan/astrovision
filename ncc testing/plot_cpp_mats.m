@@ -34,12 +34,15 @@ display('finished loading images');
 fig = figure;
 for i=1:numImages-1
     set(fig,'PaperPositionMode','auto');
-    catImage = [leftImages(:,:,i) rightImages(:,:,i); leftImages(:,:,i+1) zeros(imHeight,imWidth)];
+    catImage = [leftImages(:,:,i+1) rightImages(:,:,i+1); leftImages(:,:,i) zeros(imHeight,imWidth)];
     imshow(catImage)
     hold on;
-    plot(corrNext(:,1,i),corrNext(:,2,i),'r.');
+    %points for left frame at time n
+    plot(corrNext(:,1,i),corrNext(:,2,i)+imHeight,'b.');
+    %points for right frame at time n+1
     plot(corrRight(:,1,i)+imWidth,corrRight(:,2,i),'g.');
-    plot(corrPrev(:,1,i),corrPrev(:,2,i)+imHeight,'b.');
+    %points for left frame at time n+1
+    plot(corrPrev(:,1,i),corrPrev(:,2,i),'r.');
     hold off;
     print(fig,'-dpng','-r0', ['C:/Users/render/Desktop/dylan/gits/astrovision/ctime/results_three/' int2str(i) '.png']);
 end

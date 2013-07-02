@@ -8,9 +8,9 @@
 #include "opencv2/imgproc/imgproc.hpp"
 using namespace cv;		using namespace std;
 
-// #define SAVE_CORRESPONDENCES
+#define SAVE_CORRESPONDENCES
 
-const int numImages = 40;
+const int numImages = 100;
 const int numPoints = 300;
 // const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
 // const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
@@ -113,14 +113,17 @@ int main() {
 	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
 	char resultNextFile[47];
+	char resultRightFile[47];
 	char resultPrevFile[47];
 	for (int i = 1; i < numImages; i++) {
 		// cout << "saving astromat " << i << endl;
 		currIm1Data = imageSetLefts[i-1];
 		currIm2Data = imageSetLefts[i];
-		sprintf(resultNextFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrNextP", i, ".txt");
-		sprintf(resultPrevFile, "%s%02d%s", "/Users/dylan/Dropbox/astromats/corrPrevP", i, ".txt");
+		sprintf(resultNextFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrNext", i+199, ".txt");
+		sprintf(resultRightFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrRight", i+199, ".txt");
+		sprintf(resultPrevFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrPrev", i+200, ".txt");
 		writeMat(currIm1Data.correspondencesNext, resultNextFile);
+		writeMat(currIm1Data.correspondencesLR, resultRightFile);
 		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
 	}
 	#endif

@@ -10,13 +10,13 @@ using namespace cv;		using namespace std;
 
 #define SAVE_CORRESPONDENCES
 
-const int numImages = 100;
+const int numImages = 69;
 const int numPoints = 300;
 // const char imDir[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/left_rect_crop_";
 // const char imDirR[] = "/Users/dylan/Dropbox/helicopter_rect_crop_images/right_rect_crop_";
 // const char imExt[] = ".tiff";
-const char imDir[] =  "/Users/dylan/Desktop/parking_lot/left_raw_";
-const char imDirR[] = "/Users/dylan/Desktop/parking_lot/right_raw_";
+const char imDir[] =  "/Users/dylan/Dropbox/Hongbin/roof_images/rectified/L_";
+const char imDirR[] = "/Users/dylan/Dropbox/Hongbin/roof_images/rectified/R_";
 const char imExt[] = ".png";
 const int imLocLength = strlen(imDirR) + strlen(imExt) + 4;
 /* for hongbin construction images */
@@ -64,16 +64,16 @@ int main() {
 
 	cout << "setting up first image" << endl;
 	char imageLocation[imLocLength];
-	sprintf(imageLocation, "%s%04d%s", imDir,200,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDir,200,imExt);
 	currIm1 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	harris(currIm1, strengths, corners);
 	printf("%d corners found\n",corners.rows);
 	suppress(corners, strengths, currIm1Data.correspondencesNext);
 	// currIm1Data.correspondencesPrev = NULL;
 
-	sprintf(imageLocation, "%s%04d%s", imDir,201,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDir,201,imExt);
 	currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-	sprintf(imageLocation, "%s%04d%s", imDirR,201,imExt);
+	sprintf(imageLocation, "%s%03d%s", imDirR,201,imExt);
 	currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 	nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 	imageSetLefts.push_back(currIm1Data);
@@ -92,9 +92,9 @@ int main() {
 		cout << "processing images " << i << " and " << i+1 << endl;
 		currIm1Data = currIm2Data;
 		currIm1 = currIm2;
-		sprintf(imageLocation, "%s%04d%s", imDir,i+200,imExt);
+		sprintf(imageLocation, "%s%03d%s", imDir,i+200,imExt);
 		currIm2 = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
-		sprintf(imageLocation, "%s%04d%s", imDirR,i-1+200,imExt);
+		sprintf(imageLocation, "%s%03d%s", imDirR,i+200,imExt);
 		currImR = imread(imageLocation,CV_LOAD_IMAGE_GRAYSCALE);
 		nccPyramidMatch(currIm1, currIm2, currImR, currIm1Data, currIm2Data);
 		imageSetLefts.push_back(currIm1Data);
@@ -106,7 +106,7 @@ int main() {
 		// writeMat(currIm2Data.correspondencesNext, resultNextFile);
 	}
 	imageSetLefts.push_back(currIm2Data);
-	//last image does not have left-right correspondences!
+	//first image does not have left-right correspondences!
 	cout << "finished processing images" << endl;
 
 	/* save the correspondence matrix pairs */
@@ -123,7 +123,7 @@ int main() {
 		sprintf(resultRightFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrRight", i+199, ".txt");
 		sprintf(resultPrevFile, "%s%04d%s", "/Users/dylan/Dropbox/astromats_three/corrPrev", i+200, ".txt");
 		writeMat(currIm1Data.correspondencesNext, resultNextFile);
-		writeMat(currIm1Data.correspondencesLR, resultRightFile);
+		writeMat(currIm2Data.correspondencesLR, resultRightFile);
 		writeMat(currIm2Data.correspondencesPrev, resultPrevFile);
 	}
 	#endif
@@ -150,7 +150,7 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 	Mat newWindow(windowHalfSize2+windowHalfSize2,windowHalfSize2+windowHalfSize2,CV_8UC1);
 	Mat windowResize((windowHalfSize2+windowHalfSize2)*2,(windowHalfSize2+windowHalfSize2)*2,CV_8UC1);
 	Mat xcc, xcc2, xccR, xccR2;
-	im1Data.correspondencesLR.create(numPoints,2,CV_32FC1);
+	im2Data.correspondencesLR.create(numPoints,2,CV_32FC1);
 	im2Data.correspondencesPrev.create(numPoints,2,CV_32FC1);
 	im2Data.correspondencesNext.create(numPoints,2,CV_32FC1);
 	Mat im1Pts = im1Data.correspondencesNext;
@@ -184,8 +184,8 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 			invalidCount = invalidCount + 1;
 			im1Data.correspondencesNext.at<float>(i,0) = NAN;
 			im1Data.correspondencesNext.at<float>(i,1) = NAN;
-			im1Data.correspondencesLR.at<float>(i,0) = NAN;
-			im1Data.correspondencesLR.at<float>(i,1) = NAN;
+			im2Data.correspondencesLR.at<float>(i,0) = NAN;
+			im2Data.correspondencesLR.at<float>(i,1) = NAN;
 			im2Data.correspondencesPrev.at<float>(i,0) = NAN;
 			im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 		}
@@ -237,16 +237,16 @@ void nccPyramidMatch(const Mat& im1, const Mat& im2, const Mat& imR, imageData& 
 
 			currImRRow = (float) (newRowR + rowOffsetR);
 			currImRCol = (float) (newColR + colOffsetR);
-			im1Data.correspondencesLR.at<float>(i,0) = currImRCol;
-			im1Data.correspondencesLR.at<float>(i,1) = currImRRow;
+			im2Data.correspondencesLR.at<float>(i,0) = currImRCol;
+			im2Data.correspondencesLR.at<float>(i,1) = currImRRow;
 
 			//check if new point is outside of the tolerance frame
 			if ((currIm2Row < (halfSize - 1)) || (currImRRow < (halfSize - 1)) || (currIm2Col < (halfSize - 1)) || (currImRCol < (halfSize - 1)) || (currIm2Row > (imHeight - halfSize)) || (currImRRow > (imHeight - halfSize)) || (currIm2Col > (imWidth - halfSize)) || (currImRCol > (imWidth - halfSize))) {
 				invalidCount = invalidCount + 1;
 				im1Data.correspondencesNext.at<float>(i,0) = NAN;
 				im1Data.correspondencesNext.at<float>(i,1) = NAN;
-				im1Data.correspondencesLR.at<float>(i,0) = NAN;
-				im1Data.correspondencesLR.at<float>(i,1) = NAN;
+				im2Data.correspondencesLR.at<float>(i,0) = NAN;
+				im2Data.correspondencesLR.at<float>(i,1) = NAN;
 				im2Data.correspondencesPrev.at<float>(i,0) = NAN;
 				im2Data.correspondencesPrev.at<float>(i,1) = NAN;
 			}

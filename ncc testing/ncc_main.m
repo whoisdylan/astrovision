@@ -1,21 +1,21 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 40;
+numImages = 10;
 numPoints = 300;
 
 %import images from directory direc
-direc = 'C:\Users\render\Desktop\dylan\helicopter images 2\left*.tiff';
+direc = 'C:\Users\render\Desktop\dylan\parking_lot_images\left*.png';
 D = dir(direc);
 %sizes for helicopter images 1
 % imHeight = 1936;
 % imWidth = 1456;
 %sizes for helicopter images 2
-imHeight = 1827;
-imWidth = 1306;
+imHeight = 1936;
+imWidth = 1456;
 leftImages = uint8(zeros(imHeight,imWidth,numImages));
 for i=1:numImages;
-    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\helicopter images 2\' D(i).name]);
+    leftImages(:,:,i) = imread(['C:\Users\render\Desktop\dylan\parking_lot_images\' D(i).name]);
 end
 display('finished loading images');
 %%

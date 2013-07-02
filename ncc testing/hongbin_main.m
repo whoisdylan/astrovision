@@ -1,11 +1,11 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 2;
+numImages = 5;
 numPoints = 300;
 
 %import images from directory direc
-direc = 'C:\Users\render\Desktop\renewpics\';
+direc = 'C:\Users\render\Downloads\Wean_6_11_10-52-25\Wean_6_11_10-52-25\';
 DL = dir([direc 'L*']);
 DR = dir([direc 'R*']);
 %sizes for helicopter images 1
@@ -19,6 +19,7 @@ for i=1:numel(DL);
     lefts(:,:,i) = rgb2gray(imread([direc DL(i).name]));
     rights(:,:,i) = rgb2gray(imread([direc DR(i).name]));
 end
+imWidth = size(lefts(:,:,1),2);
 display('finished loading images');
 %%
 
@@ -26,7 +27,7 @@ display('finished loading images');
 % im1cols = im1rows;
 % im2rows = im1rows;
 % im2cols = im1rows;
-numImages=2;
+numImages=5;
 numPoints=300;
 %contains all points for all images, including newly acquired ones if
 %points went out of frame
@@ -45,32 +46,23 @@ for i=1:(numImages)
     [sx1,sy1,~] = suppress(x1,y1,v1);
     correspondences(:,1,i) = sx1;
     correspondences(:,2,i) = sy1;
-    [~,~,correspondences(:,4,i),correspondences(:,3,i)] = ncc_match(currIm1,currIm2,correspondences(:,2,i),correspondences(:,1,i));
+    [~,~,correspondences(:,4,i),correspondences(:,3,i)] = ncc_pyramid_match(currIm1,currIm2,correspondences(:,2,i),correspondences(:,1,i));
 end
 display('finished processing images');
 %%
-%save dual image figs to show correspondences
 
-%%
-
-%save figs to make video
+%save dual-image figs to make video
 % D = dir('C:/Users/render/Desktop/dylan/helicopter images/left*.png');
 fig = figure;
-for i=1:numImages
+for i=1:numImages-1
     set(fig,'PaperPositionMode','auto');
-    imshow(lefts(:,:,i));
+    catImage = [lefts(:,:,i) rights(:,:,i+1)];
+    imshow(catImage)
     hold on;
-%     plot(points(:,1,i),points(:,2,i),'r.'); %plot all points
-    %plot correspondences
     plot(correspondences(:,1,i),correspondences(:,2,i),'r.');
-    for j=1:numPoints
-        if (~isnan(correspondences(j,3,i)))
-            plot([correspondences(j,1,i) correspondences(j,3,i)],[correspondences(j,2,i) correspondences(j,4,i)]);
-        end
-    end
+    plot(correspondences(:,3,i)+imWidth,correspondences(:,4,i),'r.');
     hold off;
-%     saveas(fig,['C:/Users/render/Desktop/dylan/ncc testing/results 6-5-13/' int2str(i)],'png');
-    print(fig,'-dpng', '-r0', ['C:/Users/render/Desktop/dylan/ncc testing/hongbin/LR' int2str(i) '.png']);
+    print(fig,'-dpng','-r0', ['C:/Users/render/Desktop/dylan/ncc testing/data/LR' int2str(i) '.png']);
 end
 display('finished saving figures');
 %%

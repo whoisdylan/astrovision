@@ -112,9 +112,9 @@ int main() {
 	/* save the correspondence matrix pairs */
 	#ifdef SAVE_CORRESPONDENCES
 	cout << "saving correspondence matrices" << endl;
-	char resultNextFile[47];
-	char resultRightFile[47];
-	char resultPrevFile[47];
+	char resultNextFile[100];
+	char resultRightFile[100];
+	char resultPrevFile[100];
 	for (int i = 1; i < numImages; i++) {
 		// cout << "saving astromat " << i << endl;
 		currIm1Data = imageSetLefts[i-1];

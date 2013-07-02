@@ -1,4 +1,4 @@
-function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_match(im1,im2,im1rows,im1cols)
+function [im2rows,im2cols,correspondenceRows,correspondenceCols] = ncc_pyramid_match(im1,im2,im1rows,im1cols)
 %takes in im1 im2 and im1 feature points, creates descriptors of im1pts and
 %searches windows within im2 to find and return im2pts
 

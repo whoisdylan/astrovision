@@ -1,7 +1,7 @@
 %given im1, im2, and feature points (sx1,sy1) in im1 compute ncc across a window in im2 to find
 %correspondence points in im2
 
-numImages = 100;
+numImages = 20;
 numPoints = 300;
 
 %import images from directory direc
@@ -37,12 +37,12 @@ display('finished loading images');
 correspondences = zeros(numPoints,4,numImages);
 
 display('beginning image processing');
-for i=1:(numImages-1)
-    display(['processing images ' num2str(i) ' and ' num2str(i+1)]);
+for i=1:(numImages)
+    display(['processing image pair ' num2str(i)]);
     currIm1 = leftImages(:,:,i);
     currIm2 = rightImages(:,:,i);
     [x1, y1, v1] = harris(currIm1);
-    [correspondences(:,1,1), correspondences(:,2,1), ~] = suppress(x1,y1,v1);
+    [correspondences(:,1,i), correspondences(:,2,i), ~] = suppress(x1,y1,v1);
 %     correspondences(:,2,i) = points(:,2,i);
 %     correspondences(:,1,i) = points(:,1,i);
     [~,~,correspondences(:,4,i),correspondences(:,3,i)] = ncc_pyramid_match(currIm1,currIm2,correspondences(:,2,i),correspondences(:,1,i));

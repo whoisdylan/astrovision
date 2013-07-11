@@ -1,10 +1,13 @@
-numImages = 69;
+numImages = 10;
 numPoints = 200;
 %import images from directory direc
-direc = 'C:\Users\dylan.koenig\Dropbox\Hongbin\roof_images\rectified\';
+% direc = 'C:\Users\dylan.koenig\Dropbox\Hongbin\roof_images\rectified\';
+direc = 'C:\Users\dylan.koenig\Dropbox\datasets\zipline\';
 direcC = 'C:\Users\dylan.koenig\Dropbox\astromats_three\';
-DL = dir([direc 'L_*.png']);
-DR = dir([direc 'R_*.png']);
+% DL = dir([direc 'L_*.png']);
+% DR = dir([direc 'R_*.png']);
+DL = dir([direc 'left_rect_*.png']);
+DR = dir([direc 'right_rect_*.png']);
 %sizes for helicopter images 1
 % imHeight = 1936;
 % imWidth = 1456;
@@ -14,8 +17,10 @@ imWidth = 1456;
 leftImages = uint8(zeros(imHeight,imWidth,numImages));
 rightImages = uint8(zeros(imHeight,imWidth,numImages));
 for i=1:numImages;
-    leftImages(:,:,i) = rgb2gray(imread([direc DL(i).name]));
-    rightImages(:,:,i) = rgb2gray(imread([direc DR(i).name]));
+%     leftImages(:,:,i) = rgb2gray(imread([direc DL(i).name]));
+%     rightImages(:,:,i) = rgb2gray(imread([direc DR(i).name]));
+    leftImages(:,:,i) = imread([direc DL(i).name]);
+    rightImages(:,:,i) = imread([direc DR(i).name]);
 end
 display('finished loading images');
 %%
@@ -47,10 +52,10 @@ for i=1:numImages-1
     %points for left frame at time n+1
     plot(corrPrev(:,1,i),corrPrev(:,2,i),'r.');
     hold off;
-    print(fig,'-dpng','-r0', ['C:/Users/dylan.koenig/Desktop/dylan/gits/astrovision/ctime/results_three/' int2str(i) '.png']);
+    print(fig,'-dpng','-r0', ['C:/Users/dylan.koenig/Documents/vision/gits/astrovision/ctime/results_16/' int2str(i) '.png']);
 end
 display('finished saving tri figures');
 %%
 %make tri-image video
-makeVideo('C:/Users/render/Desktop/dylan/ncc testing/results_dual',numImages-1);
+makeVideo('C:/Users/dylan.koenig/Documents/vision/ncc testing/results_dual',numImages-1);
 display('finished making video');
